@@ -7,5 +7,7 @@ public interface DataService {
 
     Map<String, Long> getDataSize();
 
-    Map<String, Long> getTopics();
+    Map<String, Integer> getTopics();
+
+    Map<String, Integer> getErrors();
 }
