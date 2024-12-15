@@ -7,6 +7,7 @@ import com.example.stackoverflow.repository.UserRepository;
 import com.example.stackoverflow.service.DataService;
 import com.example.stackoverflow.service.JavaError;
 import com.example.stackoverflow.service.JavaTopic;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,8 @@ public class DataServiceImpl implements DataService {
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
-
+    private final Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>();
+    private final Map<String, Set<Integer>> errorQuestionMap = new ConcurrentHashMap<>();
 
     @Override
     public int test() {
@@ -38,51 +40,58 @@ public class DataServiceImpl implements DataService {
                 "user", userRepository.count());
     }
 
-    @Override
-    public Map<String, Integer> getTopics() {
-        Map<String, Integer> topicQuestionCount = new ConcurrentHashMap<>(); // 使用线程安全的 ConcurrentHashMap
-        ExecutorService executorService = Executors.newFixedThreadPool(8); // 创建一个包含 8 个线程的线程池
-        List<Callable<Void>> tasks = new ArrayList<>();
 
+
+    @PostConstruct
+    public void initialize() {
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
+        List<Callable<Void>> tasks = new ArrayList<>();
+        // 初始化 Topics 数据
         for (JavaTopic topic : JavaTopic.values()) {
             tasks.add(() -> {
-                int count = 0;
-                Set<Integer> processedQuestionIds = ConcurrentHashMap.newKeySet(); // 使用线程安全的 Set 来存储已处理的问题 ID
-
+                Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String keyword : topic.getKeywords()) {
                     List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
                             keyword, keyword, keyword);
-
-                    // 对查询结果进行去重，只统计未处理过的问题
-                    for (Question question : matchingQuestions) {
-                        if (!processedQuestionIds.contains(question.getId())) {
-                            processedQuestionIds.add(question.getId()); // 标记该问题 ID 为已处理
-                            count++; // 增加计数
-                        }
-                    }
+                    matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }
-                topicQuestionCount.put(topic.getTopicName(), count); // 将结果写入线程安全的 Map
+                topicQuestionMap.put(topic.getTopicName(), questionIds);
+                return null;
+            });
+        }
+
+        // 初始化 Errors 数据
+        for (JavaError error : JavaError.values()) {
+            tasks.add(() -> {
+                Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
+                for (String keyword : error.getKeywords()) {
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                            keyword, keyword, keyword);
+                    matchingQuestions.forEach(question -> questionIds.add(question.getId()));
+                }
+                errorQuestionMap.put(error.getErrorName(), questionIds);
                 return null;
             });
         }
 
         try {
-            // 提交所有任务并等待完成
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // 恢复中断状态
+            Thread.currentThread().interrupt();
             throw new RuntimeException("Thread execution interrupted", e);
         } finally {
-            executorService.shutdown(); // 关闭线程池
+            executorService.shutdown();
         }
+    }
 
-        // 按值降序排序并返回结果
-        return topicQuestionCount.entrySet()
+    @Override
+    public Map<String, Integer> getTopics() {
+        return topicQuestionMap.entrySet()
                 .stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size())) // Sorting by size in descending order
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        Map.Entry::getValue,
+                        entry -> entry.getValue().size(),
                         (e1, e2) -> e1,
                         LinkedHashMap::new
                 ));
@@ -90,54 +99,16 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public Map<String, Integer> getErrors() {
-        Map<String, Integer> errorsCount = new ConcurrentHashMap<>(); // 使用线程安全的 ConcurrentHashMap
-        ExecutorService executorService = Executors.newFixedThreadPool(8); // 创建一个包含 8 个线程的线程池
-        List<Callable<Void>> tasks = new ArrayList<>();
-
-
-        for (JavaError error : JavaError.values()) {
-            tasks.add(() -> {
-                int count = 0;
-                Set<Integer> processedQuestionIds = ConcurrentHashMap.newKeySet(); // 使用线程安全的 Set 来存储已处理的问题 ID
-
-                for (String keyword : error.getKeywords()) {
-                    // 并发查询问题数据
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
-                            keyword, keyword, keyword);
-
-                    // 对查询结果进行去重，只统计未处理过的问题
-                    for (Question question : matchingQuestions) {
-                        if (!processedQuestionIds.contains(question.getId())) {
-                            processedQuestionIds.add(question.getId()); // 标记该问题 ID 为已处理
-                            count++; // 增加计数
-                        }
-                    }
-                }
-                errorsCount.put(error.getErrorName(), count); // 将结果写入线程安全的 Map
-                return null;
-            });
-        }
-
-        try {
-            // 提交所有任务并等待完成
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // 恢复中断状态
-            throw new RuntimeException("Thread execution interrupted", e);
-        } finally {
-            executorService.shutdown(); // 关闭线程池
-        }
-
-        // 按值降序排序并返回结果
-        return errorsCount.entrySet()
+        return errorQuestionMap.entrySet()
                 .stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size())) // Sorting by size in descending order
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        Map.Entry::getValue,
+                        entry -> entry.getValue().size(),
                         (e1, e2) -> e1,
                         LinkedHashMap::new
                 ));
     }
+
 
 }
