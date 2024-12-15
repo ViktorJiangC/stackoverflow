@@ -33,4 +33,9 @@ public class ChartController {
     public Map<String, Integer> getErrors() {
         return dataService.getErrors();
     }
+
+    @PostMapping("/getUsersDistribution")
+    public Map<String, Integer> getUsersDistribution() {
+        return dataService.getUsersDistribution();
+    }
 }

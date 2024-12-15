@@ -1,6 +1,7 @@
 package com.example.stackoverflow.service.Impl;
 
 import com.example.stackoverflow.model.Question;
+import com.example.stackoverflow.model.User;
 import com.example.stackoverflow.repository.AnswerRepository;
 import com.example.stackoverflow.repository.QuestionRepository;
 import com.example.stackoverflow.repository.UserRepository;
@@ -8,7 +9,6 @@ import com.example.stackoverflow.service.DataService;
 import com.example.stackoverflow.service.JavaError;
 import com.example.stackoverflow.service.JavaTopic;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +27,7 @@ public class DataServiceImpl implements DataService {
     private final UserRepository userRepository;
     private final Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>();
     private final Map<String, Set<Integer>> errorQuestionMap = new ConcurrentHashMap<>();
+    private final Set<User> proUsers = new HashSet<>();
 
     @Override
     public int test() {
@@ -41,10 +42,9 @@ public class DataServiceImpl implements DataService {
     }
 
 
-
     @PostConstruct
     public void initialize() {
-        ExecutorService executorService = Executors.newFixedThreadPool(8);
+        ExecutorService executorService = Executors.newFixedThreadPool(16);
         List<Callable<Void>> tasks = new ArrayList<>();
         // 初始化 Topics 数据
         for (JavaTopic topic : JavaTopic.values()) {
@@ -82,6 +82,8 @@ public class DataServiceImpl implements DataService {
         } finally {
             executorService.shutdown();
         }
+
+        proUsers.addAll(userRepository.findUsersByScoreGreaterThan(200));
     }
 
     @Override
@@ -110,5 +112,39 @@ public class DataServiceImpl implements DataService {
                 ));
     }
 
+    @Override
+    public Map<String, Integer> getUsersDistribution() {
+        List<Object[]> result = userRepository.findUserScoreRanges();
+        Map<String, Integer> scoreRangeMap = new TreeMap<>(new Comparator<String>() {
+            @Override
+            public int compare(String range1, String range2) {
+                // Parse the lower bound of each range
+                int lower1 = parseLowerBound(range1);
+                int lower2 = parseLowerBound(range2);
+                return Integer.compare(lower1, lower2);
+            }
+
+            // Helper method to extract the lower bound from the range string
+            private int parseLowerBound(String range) {
+                if (range.equals("Below 0")) {
+                    return Integer.MIN_VALUE;  // "Below 0" should come first
+                } else if (range.equals("Above 100")) {
+                    return Integer.MAX_VALUE; // "Above 100" should come last
+                } else {
+                    String[] parts = range.split(" and ");
+                    return Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+                }
+            }
+        });
+
+        // Populate the TreeMap with the query results
+        for (Object[] row : result) {
+            String scoreRange = (String) row[0];
+            Integer userCount = ((Number) row[1]).intValue();  // Convert from Number to Integer
+            scoreRangeMap.put(scoreRange, userCount);
+        }
+
+        return scoreRangeMap;
+    }
 
 }
