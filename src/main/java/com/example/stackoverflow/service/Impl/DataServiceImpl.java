@@ -41,7 +41,6 @@ public class DataServiceImpl implements DataService {
                 "user", userRepository.count());
     }
 
-
     @PostConstruct
     public void initialize() {
         ExecutorService executorService = Executors.newFixedThreadPool(16);
