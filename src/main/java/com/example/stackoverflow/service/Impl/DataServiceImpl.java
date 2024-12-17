@@ -1,5 +1,6 @@
 package com.example.stackoverflow.service.Impl;
 
+import com.example.stackoverflow.model.Answer;
 import com.example.stackoverflow.model.Question;
 import com.example.stackoverflow.model.User;
 import com.example.stackoverflow.repository.AnswerRepository;
@@ -13,11 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +26,8 @@ public class DataServiceImpl implements DataService {
     private final Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>();
     private final Map<String, Set<Integer>> errorQuestionMap = new ConcurrentHashMap<>();
     private final Set<User> proUsers = new HashSet<>();
+    private final Map<String, Integer> proTopics = new LinkedHashMap<>();
+    private final List<Question> closedQuestions = new ArrayList<>();
 
     @Override
     public int test() {
@@ -73,6 +73,9 @@ public class DataServiceImpl implements DataService {
             });
         }
 
+        // 初始化 Pro Users 数据
+        proUsers.addAll(userRepository.findUsersByScoreGreaterThan(200));
+
         try {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
@@ -82,7 +85,42 @@ public class DataServiceImpl implements DataService {
             executorService.shutdown();
         }
 
-        proUsers.addAll(userRepository.findUsersByScoreGreaterThan(200));
+        // 计算 Pro Topics
+        calculateProTopics();
+
+        closedQuestions.addAll(questionRepository.findQuestionsByClosedDateIsNotNullAndCreationDateIsNotNull());
+    }
+
+    private void calculateProTopics() {
+        List<Answer> proAnswers = answerRepository.findAnswersByOwnerUserIsIn(proUsers);
+        // 获取 pro 用户回答的所有问题 ID
+        List<Integer> proQuestions = proAnswers.stream()
+                .map(Answer::getQuestion)
+                .map(Question::getId)
+                .toList();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(16);
+        List<Callable<Map.Entry<String, Integer>>> tasks = topicQuestionMap.entrySet().stream()
+                .map(entry -> (Callable<Map.Entry<String, Integer>>) () -> {
+                    long count = entry.getValue().stream()
+                            .filter(proQuestions::contains)
+                            .count();
+                    return new AbstractMap.SimpleEntry<>(entry.getKey(), (int) count);
+                })
+                .collect(Collectors.toList());
+
+        try {
+            List<Future<Map.Entry<String, Integer>>> results = executorService.invokeAll(tasks);
+            for (Future<Map.Entry<String, Integer>> future : results) {
+                Map.Entry<String, Integer> entry = future.get();
+                proTopics.put(entry.getKey(), entry.getValue());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread execution interrupted", e);
+        } finally {
+            executorService.shutdown();
+        }
     }
 
     @Override
@@ -145,5 +183,21 @@ public class DataServiceImpl implements DataService {
 
         return scoreRangeMap;
     }
+
+    @Override
+    public Map<String, Integer> getProTopics() {
+        return Collections.unmodifiableMap(
+                proTopics.entrySet()
+                        .stream()
+                        .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue())) // 降序排序
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (e1, e2) -> e1,
+                                LinkedHashMap::new // 保持插入顺序
+                        ))
+        );
+    }
+
 
 }

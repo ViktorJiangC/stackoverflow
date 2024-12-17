@@ -13,4 +13,6 @@ public interface DataService {
     Map<String, Integer> getErrors();
 
     Map<String, Integer> getUsersDistribution();
+
+    Map<String, Integer> getProTopics();
 }
