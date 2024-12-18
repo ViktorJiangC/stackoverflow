@@ -15,11 +15,6 @@ import java.util.Map;
 public class ChartController {
     private final DataService dataService;
 
-    @GetMapping("/test")
-    public int test() {
-        return dataService.test();
-    }
-
     @GetMapping("/getDataSize")
     public Map<String, Long> getDataSize() {
         return dataService.getDataSize();
@@ -40,8 +35,33 @@ public class ChartController {
         return dataService.getUsersDistribution();
     }
 
+    @GetMapping("/getQuestionsDistribution")
+    public Map<String, Integer> getQuestionsDistribution() {
+        return dataService.getQuestionsDistribution();
+    }
+
+    @GetMapping("/getAnswersDistribution")
+    public Map<String, Integer> getAnswersDistribution() {
+        return dataService.getAnswersDistribution();
+    }
+
     @GetMapping("/getProTopics")
     public Map<String, Integer> getProTopics() {
         return dataService.getProTopics();
+    }
+
+    @GetMapping("/getAverageUserScores")
+    public Map<String, Double> getAverageUserScores() {
+        return dataService.getAverageUserScores();
+    }
+
+    @GetMapping("/calculateResponseTimeMetrics")
+    public Map<String, Map<String, Double>> calculateResponseTimeMetrics() {
+        return dataService.calculateResponseTimeMetrics();
+    }
+
+    @GetMapping("/getAverageScoresByLengthRange")
+    public Map<String, Double> getAverageScoresByLengthRange() {
+        return dataService.getAverageScoresByLengthRange();
     }
 }

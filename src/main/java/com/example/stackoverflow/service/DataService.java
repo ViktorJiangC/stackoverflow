@@ -14,5 +14,15 @@ public interface DataService {
 
     Map<String, Integer> getUsersDistribution();
 
+    Map<String, Integer> getQuestionsDistribution();
+
+    Map<String, Integer> getAnswersDistribution();
+
     Map<String, Integer> getProTopics();
+
+    Map<String, Double> getAverageUserScores();
+
+    Map<String, Map<String, Double>> calculateResponseTimeMetrics();
+
+    Map<String, Double> getAverageScoresByLengthRange();
 }
