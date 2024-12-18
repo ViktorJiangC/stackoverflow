@@ -119,7 +119,7 @@ public class DataServiceImpl implements DataService {
     public Map<String, Integer> getProTopics() {
         Map<String, Integer> proTopics = new HashMap<>();
         // 获取 pro 用户
-        Set<User> proUsers = new HashSet<>(userRepository.findUsersByScoreGreaterThan(200));
+        Set<User> proUsers = new HashSet<>(userRepository.findUsersByScoreGreaterThan(100));
         List<Answer> proAnswers = answerRepository.findAnswersByOwnerUserIsIn(proUsers);
         Map<String, Set<Integer>> topicQuestionMap = getTopicQuestionMap();
         // 获取 pro 用户回答的所有问题 ID
@@ -179,7 +179,7 @@ public class DataServiceImpl implements DataService {
             private int parseLowerBound(String range) {
                 if (range.equals("Below 0")) {
                     return Integer.MIN_VALUE;  // "Below 0" should come first
-                } else if (range.equals("Above 100")) {
+                } else if (range.equals("Above 20")) {
                     return Integer.MAX_VALUE; // "Above 100" should come last
                 } else {
                     String[] parts = range.split(" and ");

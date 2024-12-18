@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #f4f4f4;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar button:hover {
+            background-color: #0056b3;
+        }
+        .content {
+            width: calc(100% - 200px);
+            padding: 20px;
+        }
+        .chart-container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+        .chart-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .chart-description {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <button onclick="showInterface('interface1')">Basic Info</button>
+    <button onclick="showInterface('interface2')">Topics&Errors</button>
+    <button onclick="showInterface('interface3')">What makes a good answer?</button>
+</div>
+<div class="content" id="content">
+    <!-- Interface 1 -->
+    <div id="interface1" style="display: block;">
+        <div class="chart-container">
+            <div class="chart-title">Data Size Distribution</div>
+            <div class="chart-description">This chart shows the distribution of data sizes.</div>
+            <canvas id="dataSizeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Users Score Distribution</div>
+            <div class="chart-description">This chart shows the distribution of user scores in different ranges.</div>
+            <canvas id="usersDistributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Questions and Answers Score Distribution</div>
+            <div class="chart-description">This chart shows the distribution of questions and answers scores in different ranges.</div>
+            <canvas id="questionsAndAnswersDistributionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Interface 2 -->
+    <div id="interface2" style="display: none;">
+        <div class="chart-container">
+            <div class="chart-title">Topics Discussion Frequency</div>
+            <div class="chart-description">This chart shows the frequency of topics discussed by users and professional users.</div>
+            <canvas id="topicsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Error Types Analysis</div>
+            <div class="chart-description">This pie chart shows the analysis of error types.</div>
+            <canvas id="errorsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Interface 3 -->
+    <div id="interface3" style="display: none;">
+        <div class="chart-container">
+            <div class="chart-title">Average User Scores</div>
+            <div class="chart-description">This chart shows the average user scores and those above a score of 10.</div>
+            <canvas id="averageUserScoresChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Response Time Metrics</div>
+            <div class="chart-description">This line chart shows the average response times for simple and professional users over different time intervals.</div>
+            <canvas id="responseTimeMetricsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Average Scores by Answer Length Range</div>
+            <div class="chart-description">This bar chart shows the relationship between answer length and average scores.</div>
+            <canvas id="averageScoresByLengthRangeChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchData(url) {
+        const response = await fetch(url);
+        return response.json();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Interface 1
+        const dataSizeData = await fetchData('/api/Chart/getDataSize');
+        new Chart(document.getElementById('dataSizeChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(dataSizeData),
+                datasets: [{
+                    label: 'Data Size',
+                    data: Object.values(dataSizeData),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const usersDistributionData = await fetchData('/api/Chart/getUsersDistribution');
+        new Chart(document.getElementById('usersDistributionChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(usersDistributionData),
+                datasets: [{
+                    label: 'Users Distribution',
+                    data: Object.values(usersDistributionData),
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const questionsDistributionData = await fetchData('/api/Chart/getQuestionsDistribution');
+        const answersDistributionData = await fetchData('/api/Chart/getAnswersDistribution');
+        new Chart(document.getElementById('questionsAndAnswersDistributionChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(questionsDistributionData),
+                datasets: [
+                    {
+                        label: 'Questions Distribution',
+                        data: Object.values(questionsDistributionData),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Answers Distribution',
+                        data: Object.values(answersDistributionData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Interface 2
+        const topicsData = await fetchData('/api/Chart/getTopics');
+        const proTopicsData = await fetchData('/api/Chart/getProTopics');
+        const labels = [...new Set([...Object.keys(topicsData), ...Object.keys(proTopicsData)])];
+        new Chart(document.getElementById('topicsChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Topics',
+                        data: labels.map(label => topicsData[label] || 0),
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Professional Topics',
+                        data: labels.map(label => proTopicsData[label] || 0),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const errorsData = await fetchData('/api/Chart/getErrors');
+        new Chart(document.getElementById('errorsChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(errorsData),
+                datasets: [{
+                    data: Object.values(errorsData),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                }]
+            }
+        });
+
+        // Interface 3
+        const averageUserScoresData = await fetchData('/api/Chart/getAverageUserScores');
+        new Chart(document.getElementById('averageUserScoresChart'), {
+            type: 'bar',
+            data: {
+                labels: ['avgUserScore', 'avgUserScoreAbove10'],
+                datasets: [{
+                    data: [averageUserScoresData.avgUserScore, averageUserScoresData.avgUserScoreAbove10],
+                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const responseTimeMetricsData = await fetchData('/api/Chart/calculateResponseTimeMetrics');
+        new Chart(document.getElementById('responseTimeMetricsChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(responseTimeMetricsData),
+                datasets: [
+                    {
+                        label: 'Simple Avg',
+                        data: Object.values(responseTimeMetricsData).map(item => item.simpleAvg),
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Pro Avg',
+                        data: Object.values(responseTimeMetricsData).map(item => item.proAvg),
+                        fill: false,
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const averageScoresByLengthRangeData = await fetchData('/api/Chart/getAverageScoresByLengthRange');
+        new Chart(document.getElementById('averageScoresByLengthRangeChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(averageScoresByLengthRangeData),
+                datasets: [{
+                    label: 'Average Scores',
+                    data: Object.values(averageScoresByLengthRangeData),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+
+    function showInterface(interfaceId) {
+        const interfaces = ['interface1', 'interface2', 'interface3'];
+        interfaces.forEach(id => {
+            document.getElementById(id).style.display = id === interfaceId ? 'block' : 'none';
+        });
+    }
+</script>
+</body>
+</html>
