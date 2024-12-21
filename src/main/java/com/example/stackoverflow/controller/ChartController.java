@@ -12,12 +12,6 @@ import java.util.Map;
 public class ChartController {
     private final DataService dataService;
 
-    //搜索keyword相关的问题
-    @GetMapping("/search")
-    public int search(@RequestParam String keyword) {
-        return dataService.search(keyword);
-    }
-
     //基本数据信息，界面1
     @GetMapping("/getDataSize")
     public Map<String, Long> getDataSize() {
@@ -47,12 +41,18 @@ public class ChartController {
     public Map<String, Integer> getProTopics(@RequestParam int n) {
         return dataService.getProTopics(n);
     }
-    //专业用户常讨论的话题，和上一个方法画在同一个柱状图中
+    //专业用户常讨论的话题，和上一个方法画在同一个柱状图中，这两个方法需要一个按钮来调节输入n的大小，1~8是调节范围，点击后绘制图表
     @GetMapping("/getErrors")
     public Map<String, Integer> getErrors(@RequestParam int n) {
         return dataService.getErrors(n);
     }
-    //分析出的错误的类型，用饼图表示
+    //分析出的错误的类型，用饼图表示，同样使用一个按钮，调节输入n的范围，点击后绘制图表
+    @GetMapping("/search")
+    public int search(@RequestParam String keyword) {
+        return dataService.search(keyword);
+    }
+    //搜索keyword相关的问题，返回值直接是问题数量，用一个表格表示，左侧为搜索的keyword，右侧为数量
+
 
     //界面三，分析答案的得分情况
     @GetMapping("/getAverageUserScores")

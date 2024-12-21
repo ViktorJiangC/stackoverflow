@@ -3,129 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chart Visualization</title>
+    <title>Chart Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            display: flex;
             font-family: Arial, sans-serif;
-        }
-        .sidebar {
-            width: 200px;
-            background-color: #f4f4f4;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        }
-        .sidebar button {
-            display: block;
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .sidebar button:hover {
-            background-color: #0056b3;
-        }
-        .content {
-            width: calc(100% - 200px);
-            padding: 20px;
+            background-color: #f4f4f9;
         }
         .chart-container {
             width: 80%;
             margin: auto;
-            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .chart-title {
-            font-size: 24px;
-            margin-bottom: 10px;
+        #sidebar {
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            background-color: #343a40;
+            color: #ffffff;
+            padding-top: 20px;
         }
-        .chart-description {
-            font-size: 16px;
-            color: #555;
+        #sidebar a {
+            color: #ffffff;
+        }
+        #sidebar a:hover {
+            color: #007bff;
+        }
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .card {
             margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #e9ecef;
+            border-bottom: none;
+        }
+        .card-body {
+            padding: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .loader {
+            display: inline-block;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #007bff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 5px;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 <body>
-<div class="sidebar">
-    <button onclick="showInterface('interface1')">Basic Info</button>
-    <button onclick="showInterface('interface2')">Topics&Errors</button>
-    <button onclick="showInterface('interface3')">What makes a good answer?</button>
+
+<div id="sidebar" class="p-3">
+    <ul class="nav flex-column">
+        <li class="nav-item"><a href="#" class="nav-link active" onclick="showPage('page1')">Page 1</a></li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('page2')">Page 2</a></li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('page3')">Page 3</a></li>
+    </ul>
 </div>
-<div class="content" id="content">
-    <!-- Interface 1 -->
-    <div id="interface1" style="display: block;">
-        <div class="chart-container">
-            <div class="chart-title">Data Size Distribution</div>
-            <div class="chart-description">This chart shows the distribution of data sizes.</div>
-            <canvas id="dataSizeChart"></canvas>
+
+<div id="content">
+    <div id="page1" style="display: block;">
+        <div class="card">
+            <div class="card-header">
+                <h3>Data Size</h3>
+                <p class="text-muted">Displays the size of different data categories.</p>
+            </div>
+            <div class="card-body">
+                <canvas id="dataSizeChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshDataSize()">Load Data Size</button>
+                <span id="loadingDataSize" class="loader" style="display: none;"></span>
+            </div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Users Score Distribution</div>
-            <div class="chart-description">This chart shows the distribution of user scores in different ranges.</div>
-            <canvas id="usersDistributionChart"></canvas>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Users Distribution</h3>
+                <p class="text-muted">Shows the distribution of user scores across different ranges.</p>
+            </div>
+            <div class="card-body">
+                <canvas id="usersDistributionChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshUsersDistribution()">Load Users Distribution</button>
+                <span id="loadingUsersDistribution" class="loader" style="display: none;"></span>
+            </div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Questions and Answers Score Distribution</div>
-            <div class="chart-description">This chart shows the distribution of questions and answers scores in different ranges.</div>
-            <canvas id="questionsAndAnswersDistributionChart"></canvas>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Questions and Answers Distribution</h3>
+                <p class="text-muted">Illustrates the score distributions for questions and answers.</p>
+            </div>
+            <div class="card-body">
+                <canvas id="questionsAnswersDistributionChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshQuestionsAnswersDistribution()">Load Questions & Answers Distribution</button>
+                <span id="loadingQuestionsAnswersDistribution" class="loader" style="display: none;"></span>
+            </div>
         </div>
     </div>
 
-    <!-- Interface 2 -->
-    <div id="interface2" style="display: none;">
-        <div class="chart-container">
-            <div class="chart-title">Topics Discussion Frequency</div>
-            <div class="chart-description">This chart shows the frequency of topics discussed by users and professional users.</div>
-            <canvas id="topicsChart"></canvas>
+    <div id="page2" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <h3>Topics and Professional Topics</h3>
+                <p class="text-muted">Displays the most discussed topics by regular and professional users.</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="topicsNSelect">Select number of topics (n):</label>
+                    <select id="topicsNSelect" onchange="updateTopicsN()" class="form-control">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                    </select>
+                </div>
+                <canvas id="topicsProTopicsChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshTopicsProTopics()">Load Topics & Pro Topics</button>
+                <span id="loadingTopicsProTopics" class="loader" style="display: none;"></span>
+            </div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Error Types Analysis</div>
-            <div class="chart-description">This pie chart shows the analysis of error types.</div>
-            <canvas id="errorsChart"></canvas>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Errors</h3>
+                <p class="text-muted">Shows the distribution of different types of errors.</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="errorsNSelect">Select number of error types (n):</label>
+                    <select id="errorsNSelect" onchange="updateErrorsN()" class="form-control">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                    </select>
+                </div>
+                <canvas id="errorsChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshErrors()">Load Errors</button>
+                <span id="loadingErrors" class="loader" style="display: none;"></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Search Results</h3>
+                <p class="text-muted">Enter a keyword to search for related questions.</p>
+            </div>
+            <div class="card-body">
+                <input type="text" id="searchKeyword" placeholder="Enter keyword" class="form-control mb-2">
+                <button class="btn btn-custom" onclick="fetchSearchResults()">Search</button>
+                <table id="searchTable" class="mt-2 table">
+                    <thead><tr><th>Keyword</th><th>Count</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Interface 3 -->
-    <div id="interface3" style="display: none;">
-        <div class="chart-container">
-            <div class="chart-title">Average User Scores</div>
-            <div class="chart-description">This chart shows the average user scores and those above a score of 10.</div>
-            <canvas id="averageUserScoresChart"></canvas>
+    <div id="page3" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <h3>Average User Scores</h3>
+                <p class="text-muted">Displays the average scores of all users and those above 10.</p>
+            </div>
+            <div class="card-body">
+                <canvas id="averageUserScoresChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshAverageUserScores()">Load Average User Scores</button>
+                <span id="loadingAverageUserScores" class="loader" style="display: none;"></span>
+            </div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Response Time Metrics</div>
-            <div class="chart-description">This line chart shows the average response times for simple and professional users over different time intervals.</div>
-            <canvas id="responseTimeMetricsChart"></canvas>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Response Time Metrics</h3>
+                <p class="text-muted">Shows the response time metrics for simple and professional users over different periods.</p>
+            </div>
+            <div class="card-body">
+                <canvas id="responseTimeMetricsChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshResponseTimeMetrics()">Load Response Time Metrics</button>
+                <span id="loadingResponseTimeMetrics" class="loader" style="display: none;"></span>
+            </div>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Average Scores by Answer Length Range</div>
-            <div class="chart-description">This bar chart shows the relationship between answer length and average scores.</div>
-            <canvas id="averageScoresByLengthRangeChart"></canvas>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Average Scores By Length Range</h3>
+                <p class="text-muted">Displays the relationship between answer length and average scores.</p>
+            </div>
+            <div class="card-body">
+                <canvas id="averageScoresByLengthRangeChart" class="chart-container"></canvas>
+                <button class="btn btn-custom mt-2" onclick="refreshAverageScoresByLengthRange()">Load Average Scores By Length Range</button>
+                <span id="loadingAverageScoresByLengthRange" class="loader" style="display: none;"></span>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    let topicsN = 8;
+    let errorsN = 8;
+
+    function showPage(pageId) {
+        document.querySelectorAll('#content > div').forEach(div => div.style.display = 'none');
+        document.getElementById(pageId).style.display = 'block';
+    }
+
+    function updateTopicsN() {
+        topicsN = parseInt(document.getElementById('topicsNSelect').value);
+    }
+
+    function updateErrorsN() {
+        errorsN = parseInt(document.getElementById('errorsNSelect').value);
+    }
+
     async function fetchData(url) {
         const response = await fetch(url);
         return response.json();
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Interface 1
-        const dataSizeData = await fetchData('/api/Chart/getDataSize');
-        new Chart(document.getElementById('dataSizeChart'), {
+    function createChart(ctx, config) {
+        if (ctx.chartInstance) {
+            ctx.chartInstance.destroy();
+        }
+        ctx.chartInstance = new Chart(ctx, config);
+    }
+
+    async function refreshDataSize() {
+        const ctx = document.getElementById('dataSizeChart').getContext('2d');
+        document.getElementById('loadingDataSize').style.display = 'inline-block';
+        const dataSize = await fetchData('/api/Chart/getDataSize');
+        createChart(ctx, {
             type: 'bar',
             data: {
-                labels: Object.keys(dataSizeData),
+                labels: Object.keys(dataSize),
                 datasets: [{
                     label: 'Data Size',
-                    data: Object.values(dataSizeData),
+                    data: Object.values(dataSize),
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
@@ -139,15 +284,20 @@
                 }
             }
         });
+        document.getElementById('loadingDataSize').style.display = 'none';
+    }
 
-        const usersDistributionData = await fetchData('/api/Chart/getUsersDistribution');
-        new Chart(document.getElementById('usersDistributionChart'), {
+    async function refreshUsersDistribution() {
+        const ctx = document.getElementById('usersDistributionChart').getContext('2d');
+        document.getElementById('loadingUsersDistribution').style.display = 'inline-block';
+        const usersDistribution = await fetchData('/api/Chart/getUsersDistribution');
+        createChart(ctx, {
             type: 'bar',
             data: {
-                labels: Object.keys(usersDistributionData),
+                labels: Object.keys(usersDistribution),
                 datasets: [{
-                    label: 'Users Distribution',
-                    data: Object.values(usersDistributionData),
+                    label: 'Users Score Distribution',
+                    data: Object.values(usersDistribution),
                     backgroundColor: 'rgba(153, 102, 255, 0.2)',
                     borderColor: 'rgba(153, 102, 255, 1)',
                     borderWidth: 1
@@ -161,24 +311,29 @@
                 }
             }
         });
+        document.getElementById('loadingUsersDistribution').style.display = 'none';
+    }
 
-        const questionsDistributionData = await fetchData('/api/Chart/getQuestionsDistribution');
-        const answersDistributionData = await fetchData('/api/Chart/getAnswersDistribution');
-        new Chart(document.getElementById('questionsAndAnswersDistributionChart'), {
+    async function refreshQuestionsAnswersDistribution() {
+        const ctx = document.getElementById('questionsAnswersDistributionChart').getContext('2d');
+        document.getElementById('loadingQuestionsAnswersDistribution').style.display = 'inline-block';
+        const questionsDistribution = await fetchData('/api/Chart/getQuestionsDistribution');
+        const answersDistribution = await fetchData('/api/Chart/getAnswersDistribution');
+        createChart(ctx, {
             type: 'bar',
             data: {
-                labels: Object.keys(questionsDistributionData),
+                labels: Object.keys(questionsDistribution),
                 datasets: [
                     {
-                        label: 'Questions Distribution',
-                        data: Object.values(questionsDistributionData),
+                        label: 'Questions Score Distribution',
+                        data: Object.values(questionsDistribution),
                         backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 1
                     },
                     {
-                        label: 'Answers Distribution',
-                        data: Object.values(answersDistributionData),
+                        label: 'Answers Score Distribution',
+                        data: Object.values(answersDistribution),
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -193,28 +348,31 @@
                 }
             }
         });
+        document.getElementById('loadingQuestionsAnswersDistribution').style.display = 'none';
+    }
 
-        // Interface 2
-        const topicsData = await fetchData('/api/Chart/getTopics');
-        const proTopicsData = await fetchData('/api/Chart/getProTopics');
-        const labels = [...new Set([...Object.keys(topicsData), ...Object.keys(proTopicsData)])];
-        new Chart(document.getElementById('topicsChart'), {
+    async function refreshTopicsProTopics() {
+        const ctx = document.getElementById('topicsProTopicsChart').getContext('2d');
+        document.getElementById('loadingTopicsProTopics').style.display = 'inline-block';
+        const topics = await fetchData(`/api/Chart/getTopics?n=${topicsN}`);
+        const proTopics = await fetchData(`/api/Chart/getProTopics?n=${topicsN}`);
+        createChart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: [...Object.keys(topics)],
                 datasets: [
                     {
                         label: 'Topics',
-                        data: labels.map(label => topicsData[label] || 0),
-                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                        borderColor: 'rgba(255, 159, 64, 1)',
+                        data: Object.values(topics),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 1
                     },
                     {
                         label: 'Professional Topics',
-                        data: labels.map(label => proTopicsData[label] || 0),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        data: Object.values(proTopics),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }
                 ]
@@ -227,28 +385,61 @@
                 }
             }
         });
+        document.getElementById('loadingTopicsProTopics').style.display = 'none';
+    }
 
-        const errorsData = await fetchData('/api/Chart/getErrors');
-        new Chart(document.getElementById('errorsChart'), {
+    async function refreshErrors() {
+        const ctx = document.getElementById('errorsChart').getContext('2d');
+        document.getElementById('loadingErrors').style.display = 'inline-block';
+        const errors = await fetchData(`/api/Chart/getErrors?n=${errorsN}`);
+        createChart(ctx, {
             type: 'pie',
             data: {
-                labels: Object.keys(errorsData),
+                labels: Object.keys(errors),
                 datasets: [{
-                    data: Object.values(errorsData),
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                    label: 'Error Types',
+                    data: Object.values(errors),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
                 }]
             }
         });
+        document.getElementById('loadingErrors').style.display = 'none';
+    }
 
-        // Interface 3
-        const averageUserScoresData = await fetchData('/api/Chart/getAverageUserScores');
-        new Chart(document.getElementById('averageUserScoresChart'), {
+    async function fetchSearchResults() {
+        const keyword = document.getElementById('searchKeyword').value;
+        const count = await fetchData(`/api/Chart/search?keyword=${encodeURIComponent(keyword)}`);
+        const tbody = document.querySelector('#searchTable tbody');
+        tbody.innerHTML = `<tr><td>${keyword}</td><td>${count}</td></tr>`;
+    }
+
+    async function refreshAverageUserScores() {
+        const ctx = document.getElementById('averageUserScoresChart').getContext('2d');
+        document.getElementById('loadingAverageUserScores').style.display = 'inline-block';
+        const averageUserScores = await fetchData('/api/Chart/getAverageUserScores');
+        createChart(ctx, {
             type: 'bar',
             data: {
-                labels: ['avgUserScore', 'avgUserScoreAbove10'],
+                labels: ['All Users', 'Users Above 10'],
                 datasets: [{
-                    data: [averageUserScoresData.avgUserScore, averageUserScoresData.avgUserScoreAbove10],
+                    label: 'Average Scores',
+                    data: [averageUserScores.avgUserScore, averageUserScores.avgUserScoreAbove10],
                     backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
                     borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
                     borderWidth: 1
@@ -262,25 +453,34 @@
                 }
             }
         });
+        document.getElementById('loadingAverageUserScores').style.display = 'none';
+    }
 
-        const responseTimeMetricsData = await fetchData('/api/Chart/calculateResponseTimeMetrics');
-        new Chart(document.getElementById('responseTimeMetricsChart'), {
+    async function refreshResponseTimeMetrics() {
+        const ctx = document.getElementById('responseTimeMetricsChart').getContext('2d');
+        document.getElementById('loadingResponseTimeMetrics').style.display = 'inline-block';
+        const responseTimeMetrics = await fetchData('/api/Chart/calculateResponseTimeMetrics');
+        const labels = Object.keys(responseTimeMetrics);
+        const simpleAvgData = labels.map(label => responseTimeMetrics[label].simpleAvg);
+        const proAvgData = labels.map(label => responseTimeMetrics[label].proAvg);
+
+        createChart(ctx, {
             type: 'line',
             data: {
-                labels: Object.keys(responseTimeMetricsData),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Simple Avg',
-                        data: Object.values(responseTimeMetricsData).map(item => item.simpleAvg),
+                        data: simpleAvgData,
                         fill: false,
                         borderColor: 'rgb(75, 192, 192)',
                         tension: 0.1
                     },
                     {
                         label: 'Pro Avg',
-                        data: Object.values(responseTimeMetricsData).map(item => item.proAvg),
+                        data: proAvgData,
                         fill: false,
-                        borderColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(153, 102, 255)',
                         tension: 0.1
                     }
                 ]
@@ -293,17 +493,22 @@
                 }
             }
         });
+        document.getElementById('loadingResponseTimeMetrics').style.display = 'none';
+    }
 
-        const averageScoresByLengthRangeData = await fetchData('/api/Chart/getAverageScoresByLengthRange');
-        new Chart(document.getElementById('averageScoresByLengthRangeChart'), {
+    async function refreshAverageScoresByLengthRange() {
+        const ctx = document.getElementById('averageScoresByLengthRangeChart').getContext('2d');
+        document.getElementById('loadingAverageScoresByLengthRange').style.display = 'inline-block';
+        const averageScoresByLengthRange = await fetchData('/api/Chart/getAverageScoresByLengthRange');
+        createChart(ctx, {
             type: 'bar',
             data: {
-                labels: Object.keys(averageScoresByLengthRangeData),
+                labels: Object.keys(averageScoresByLengthRange),
                 datasets: [{
                     label: 'Average Scores',
-                    data: Object.values(averageScoresByLengthRangeData),
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    data: Object.values(averageScoresByLengthRange),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
                 }]
             },
@@ -315,14 +520,19 @@
                 }
             }
         });
-    });
-
-    function showInterface(interfaceId) {
-        const interfaces = ['interface1', 'interface2', 'interface3'];
-        interfaces.forEach(id => {
-            document.getElementById(id).style.display = id === interfaceId ? 'block' : 'none';
-        });
+        document.getElementById('loadingAverageScoresByLengthRange').style.display = 'none';
     }
+
+    // Initial data fetching on page load
+    window.onload = () => {
+        refreshDataSize();
+        refreshUsersDistribution();
+        refreshQuestionsAnswersDistribution();
+    };
 </script>
+
 </body>
 </html>
+
+
+
