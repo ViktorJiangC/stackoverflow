@@ -24,8 +24,31 @@ public class DataServiceImpl implements DataService {
     private final UserRepository userRepository;;
 
     @Override
-    public int test() {
-        return answerRepository.findAnswerByBodyContaining("test").size();
+    public int search(String keyword) {
+        for(JavaTopic topic : JavaTopic.values()) {
+            if(topic.getTopicName().equals(keyword)){
+                Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
+                for (String key : topic.getKeywords()) {
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                            key, key, key);
+                    matchingQuestions.forEach(question -> questionIds.add(question.getId()));
+                }
+                return questionIds.size();
+            }
+        }
+        for(JavaError error : JavaError.values()) {
+            if(error.getErrorName().equals(keyword)) {
+                Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
+                for (String key : error.getKeywords()) {
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                            key, key, key);
+                    matchingQuestions.forEach(question -> questionIds.add(question.getId()));
+                }
+                return questionIds.size();
+            }
+        }
+        return questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                keyword, keyword, keyword).size();
     }
 
     @Override
@@ -64,11 +87,12 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public Map<String, Integer> getTopics() {
+    public Map<String, Integer> getTopics(int n) {
         Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>(getTopicQuestionMap());
         return topicQuestionMap.entrySet()
                 .stream()
-                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size())) // Sorting by size in descending order
+                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size()))
+                .limit(n)// Sorting by size in descending order
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue().size(),
@@ -78,7 +102,7 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public Map<String, Integer> getErrors() {
+    public Map<String, Integer> getErrors(int n) {
         Map<String, Set<Integer>> errorQuestionMap = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(16);
         List<Callable<Void>> tasks = new ArrayList<>();
@@ -106,7 +130,8 @@ public class DataServiceImpl implements DataService {
         }
         return errorQuestionMap.entrySet()
                 .stream()
-                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size())) // Sorting by size in descending order
+                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size()))
+                .limit(n)// Sorting by size in descending order
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue().size(),
@@ -116,7 +141,7 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public Map<String, Integer> getProTopics() {
+    public Map<String, Integer> getProTopics(int n) {
         Map<String, Integer> proTopics = new HashMap<>();
         // 获取 pro 用户
         Set<User> proUsers = new HashSet<>(userRepository.findUsersByScoreGreaterThan(100));
@@ -153,7 +178,8 @@ public class DataServiceImpl implements DataService {
         return Collections.unmodifiableMap(
                 proTopics.entrySet()
                         .stream()
-                        .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue())) // 降序排序
+                        .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue()))
+                        .limit(n)// 降序排序
                         .collect(Collectors.toMap(
                                 Map.Entry::getKey,
                                 Map.Entry::getValue,

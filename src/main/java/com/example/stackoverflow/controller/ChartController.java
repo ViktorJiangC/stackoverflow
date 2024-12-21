@@ -2,10 +2,7 @@ package com.example.stackoverflow.controller;
 
 import com.example.stackoverflow.service.DataService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -14,6 +11,12 @@ import java.util.Map;
 @RequestMapping("/api/Chart")
 public class ChartController {
     private final DataService dataService;
+
+    //搜索keyword相关的问题
+    @GetMapping("/search")
+    public int search(@RequestParam String keyword) {
+        return dataService.search(keyword);
+    }
 
     //基本数据信息，界面1
     @GetMapping("/getDataSize")
@@ -36,18 +39,18 @@ public class ChartController {
 
     //一下几个方法的返回值均为Map<String, Integer>，话题（字符串），对应的数量（整型），界面2
     @GetMapping("/getTopics")
-    public Map<String, Integer> getTopics() {
-        return dataService.getTopics();
+    public Map<String, Integer> getTopics(@RequestParam int n) {
+        return dataService.getTopics(n);
     }
     //用户常讨论的话题
     @GetMapping("/getProTopics")
-    public Map<String, Integer> getProTopics() {
-        return dataService.getProTopics();
+    public Map<String, Integer> getProTopics(@RequestParam int n) {
+        return dataService.getProTopics(n);
     }
     //专业用户常讨论的话题，和上一个方法画在同一个柱状图中
     @GetMapping("/getErrors")
-    public Map<String, Integer> getErrors() {
-        return dataService.getErrors();
+    public Map<String, Integer> getErrors(@RequestParam int n) {
+        return dataService.getErrors(n);
     }
     //分析出的错误的类型，用饼图表示
 

@@ -1,16 +1,16 @@
 package com.example.stackoverflow.service;
 
-import java.util.List;
 import java.util.Map;
 
 public interface DataService {
-    int test();
+
+    int search(String keyword);
 
     Map<String, Long> getDataSize();
 
-    Map<String, Integer> getTopics();
+    Map<String, Integer> getTopics(int n);
 
-    Map<String, Integer> getErrors();
+    Map<String, Integer> getErrors(int n);
 
     Map<String, Integer> getUsersDistribution();
 
@@ -18,7 +18,7 @@ public interface DataService {
 
     Map<String, Integer> getAnswersDistribution();
 
-    Map<String, Integer> getProTopics();
+    Map<String, Integer> getProTopics(int n);
 
     Map<String, Double> getAverageUserScores();
 
