@@ -113,4 +113,9 @@ public class ChartController {
       "14000-15999": 2.125
     }表示答案长度与答案评分的关系，用柱状图融合折线图表示
     * */
+
+    @GetMapping("/test")
+    public Map<String, Double> test() {
+        return dataService.getAvgAnswerScoresByUserScoreRange();
+    }
 }

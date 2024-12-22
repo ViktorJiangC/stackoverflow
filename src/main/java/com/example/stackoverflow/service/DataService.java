@@ -26,4 +26,6 @@ public interface DataService {
     Map<String, Map<String, Double>> calculateResponseTimeMetrics();
 
     Map<String, Double> getAverageScoresByLengthRange();
+
+    Map<String, Double> getAvgAnswerScoresByUserScoreRange();
 }

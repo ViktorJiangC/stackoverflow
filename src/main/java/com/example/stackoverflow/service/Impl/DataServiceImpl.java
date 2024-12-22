@@ -358,4 +358,20 @@ public class DataServiceImpl implements DataService {
                         )
                 );
     }
+
+    @Override
+    public Map<String, Double> getAvgAnswerScoresByUserScoreRange() {
+        List<Object[]> results = answerRepository.findAvgAnswerScoresByUserScoreRange();
+
+        //转换为Map
+        return results.stream()
+                .collect(
+                        Collectors.toMap(
+                                result -> String.valueOf(result[0]),       // Key: user score range
+                                result -> ((Number) result[1]).doubleValue(),       // Value: average answer score
+                                (existing, replacement) -> existing, // Merge function (not needed here)
+                                HashMap::new
+                        )
+                );
+    }
 }
