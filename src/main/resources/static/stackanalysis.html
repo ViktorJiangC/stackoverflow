@@ -4,17 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chart Visualization</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             display: flex;
             font-family: Arial, sans-serif;
         }
-        .sidebar {
-            width: 200px;
-            background-color: #f4f4f4;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        #sidebar {
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            background-color: #343a40;
+            color: #ffffff;
+            padding-top: 20px;
         }
         .sidebar button {
             display: block;
@@ -33,6 +36,7 @@
         .content {
             width: calc(100% - 200px);
             padding: 20px;
+            margin-left: 100px;
         }
         .chart-container {
             width: 80%;
@@ -140,14 +144,90 @@
             font-size: 18px;
             margin-top: 10px;
         }
+        /* 搜索容器 */
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .search-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 表格样式 */
+        .search-table {
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        /* 搜索按钮 */
+        .search-button, .clear-button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 清除记录按钮 */
+        .clear-button {
+            background-color: #dc3545;
+        }
+
+        .clear-button:hover {
+            background-color: #a71d2a;
+        }
+
+        .search-table th, .search-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .search-table th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .search-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .search-table tbody tr:nth-child(even) {
+            background-color: #f4f4f9;
+        }
     </style>
 </head>
 <body>
-<div class="sidebar">
-    <button onclick="showInterface('interface1')">Basic Info</button>
-    <button onclick="showInterface('interface2')">Topics</button>
-    <button onclick="showInterface('interface3')">Errors</button>
-    <button onclick="showInterface('interface4')">What makes a good answer?</button>
+<div id="sidebar" class="p-3">
+    <ul class="nav flex-column">
+        <li class="nav-item"><a href="#" class="nav-link active" onclick="showInterface('interface1')">Data info</a></li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showInterface('interface2')">Topics</a></li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showInterface('interface3')">Errors</a></li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showInterface('interface4')">Answer Analysis</a></li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showInterface('interface5')">Search</a></li>
+    </ul>
 </div>
 <div class="content" id="content">
     <!-- Interface 1 -->
@@ -206,13 +286,33 @@
             <canvas id="averageUserScoresChart"></canvas>
         </div>
     </div>
-    <div id="refreshButtonContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-        <button onclick="reload(nowInterface)" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Refresh</button>
+
+    <div id="interface5" style="display: none;">
+        <div class="search-container">
+            <label for="searchKeyword"></label><input type="text" id="searchKeyword" class="search-box" placeholder="enter keyword" />
+            <button onclick="fetchSearchResults()" class="search-button">search</button>
+            <button onclick="clearSearchRecords()" class="clear-button">clear history</button>
+        </div>
+        <table id="searchTable" class="search-table">
+            <thead>
+            <tr>
+                <th>keyword</th>
+                <th>frequency</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 搜索结果将插入到这里 -->
+            </tbody>
+        </table>
     </div>
 
     <div id="loadingSpinner" class="loading-spinner">
         <div class="spinner"></div>
         <p>Loading...</p>
+    </div>
+
+    <div id="refreshButton" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button onclick="reload(nowInterface)" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Refresh</button>
     </div>
 
 </div>
@@ -224,7 +324,7 @@
     let nowInterface = 'interface1';
 
     function showInterface(interfaceId) {
-        const interfaces = ['interface1', 'interface2', 'interface3', 'interface4'];
+        const interfaces = ['interface1', 'interface2', 'interface3', 'interface4', 'interface5'];
         interfaces.forEach(id => {
             document.getElementById(id).style.display = id === interfaceId ? 'block' : 'none';
         });
@@ -260,6 +360,8 @@
                     return;
                 }
                 break;
+            case 'interface5':
+                return;
         }
         await reload(interfaceId);
     }
@@ -279,6 +381,9 @@
                 break;
             case 'interface4':
                 await reloadInterface4();
+                break;
+            case 'interface5':
+                await reloadInterface5();
                 break;
         }
 
@@ -486,10 +591,49 @@
         });
     }
 
+    async function reloadInterface5() {
+        // Hide the loading spinner (assuming the UI is already initialized)
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+        // You can include additional logic here to load data if necessary
+        // For example, if there's a need to load search results, you can add a fetch method here
+
+        // Optional: You can initialize the table or input state if necessary
+        document.getElementById('searchKeyword').value = ''; // Clear previous input
+        document.querySelector('#searchTable tbody').innerHTML = ''; // Clear previous search results
+    }
+
+    async function fetchSearchResults() {
+        try {
+            const keyword = document.getElementById('searchKeyword').value;
+            if (!keyword.trim()) {
+                alert('please input keyword');
+                return;
+            }
+
+            const response = await fetch(`http://localhost:8080/api/Chart/search?keyword=${encodeURIComponent(keyword)}`);
+            const count = await response.text(); // 假设 `count` 是返回的 JSON 数据
+            const tbody = document.querySelector('#searchTable tbody');
+            // 将新记录插入表格顶部
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `<td>${keyword}</td><td>${count}</td>`;
+            tbody.insertBefore(newRow, tbody.firstChild); // 插入到表格顶部
+        } catch (error) {
+            console.error('search failed:', error);
+            alert('Search failed, please try again later');
+        }
+    }
+
+    function clearSearchRecords() {
+        const tbody = document.querySelector('#searchTable tbody');
+        tbody.innerHTML = ''; // 清空表格内容
+    }
+
     // Initial load when the page loads
     document.addEventListener('DOMContentLoaded', async () => {
         await reloadInterface1();
     });
+
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
