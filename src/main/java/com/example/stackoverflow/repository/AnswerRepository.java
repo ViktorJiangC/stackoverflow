@@ -80,4 +80,49 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
               ORDER BY usr.score_bucket;
         """, nativeQuery = true)
     List<Object[]> findAvgAnswerScoresByUserScoreRange();
+
+    @Query(value = """
+
+        WITH AnswerTimeDifferences AS (
+            SELECT
+                a.score,
+                a.creationdate AS answer_creation_date,
+                q.creationdate AS question_creation_date,
+                EXTRACT(EPOCH FROM (a.creationdate - q.creationdate)) AS time_difference_seconds
+            FROM answers a
+            JOIN questions q ON a.questionid = q.id
+        ),
+        Quantiles AS (
+            SELECT
+                score,
+                NTILE(10) OVER (ORDER BY time_difference_seconds) AS time_bucket
+            FROM AnswerTimeDifferences
+        )
+        SELECT
+            q.time_bucket,
+            AVG(q.score) AS average_answer_score
+        FROM Quantiles q
+        GROUP BY q.time_bucket
+        ORDER BY q.time_bucket;
+        """, nativeQuery = true)
+    List<Object[]> findAvgAnswerScoresByTimeRange();
+
+    @Query(
+        value = """
+            WITH AnswerLengthBuckets AS (
+                SELECT
+                    a.score,
+                    LENGTH(a.body) AS body_length,
+                    NTILE(10) OVER (ORDER BY LENGTH(a.body)) AS length_bucket
+                FROM answers a
+            )
+            SELECT
+                al.length_bucket,
+                AVG(al.score) AS average_answer_score
+            FROM AnswerLengthBuckets al
+            GROUP BY al.length_bucket
+            ORDER BY al.length_bucket;
+        """, nativeQuery = true
+    )
+    List<Object[]> findAvgAnswerScoresByLengthRange();
 }

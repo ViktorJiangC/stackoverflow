@@ -114,8 +114,18 @@ public class ChartController {
     }表示答案长度与答案评分的关系，用柱状图融合折线图表示
     * */
 
-    @GetMapping("/test")
-    public Map<String, Double> test() {
+    @GetMapping("/answerByUser")
+    public Map<String, Double> getAnswerByUser() {
         return dataService.getAvgAnswerScoresByUserScoreRange();
+    }
+
+    @GetMapping("/answerByTime")
+    public Map<String, Double> getAnswerByTime() {
+        return dataService.getAvgAnswerScoresByTimeRange();
+    }
+
+    @GetMapping("/answerByLength")
+    public Map<String, Double> getAnswerByLength() {
+        return dataService.getAvgAnswerScoresByLengthRange();
     }
 }

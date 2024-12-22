@@ -362,12 +362,41 @@ public class DataServiceImpl implements DataService {
     @Override
     public Map<String, Double> getAvgAnswerScoresByUserScoreRange() {
         List<Object[]> results = answerRepository.findAvgAnswerScoresByUserScoreRange();
-
         //转换为Map
         return results.stream()
                 .collect(
                         Collectors.toMap(
-                                result -> String.valueOf(result[0]),       // Key: user score range
+                                result -> String.valueOf((Integer) result[0] - 1),       // Key: user score range
+                                result -> ((Number) result[1]).doubleValue(),       // Value: average answer score
+                                (existing, replacement) -> existing, // Merge function (not needed here)
+                                HashMap::new
+                        )
+                );
+    }
+
+    @Override
+    public Map<String, Double> getAvgAnswerScoresByTimeRange() {
+        List<Object[]> results = answerRepository.findAvgAnswerScoresByTimeRange();
+        //转换为Map
+        return results.stream()
+                .collect(
+                        Collectors.toMap(
+                                result -> String.valueOf((Integer) result[0] - 1),       // Key: time range
+                                result -> ((Number) result[1]).doubleValue(),       // Value: average answer score
+                                (existing, replacement) -> existing, // Merge function (not needed here)
+                                HashMap::new
+                        )
+                );
+    }
+
+    @Override
+    public Map<String, Double> getAvgAnswerScoresByLengthRange() {
+        List<Object[]> results = answerRepository.findAvgAnswerScoresByLengthRange();
+        //转换为Map
+        return results.stream()
+                .collect(
+                        Collectors.toMap(
+                                result -> String.valueOf((Integer) result[0] - 1),       // Key: length range
                                 result -> ((Number) result[1]).doubleValue(),       // Value: average answer score
                                 (existing, replacement) -> existing, // Merge function (not needed here)
                                 HashMap::new

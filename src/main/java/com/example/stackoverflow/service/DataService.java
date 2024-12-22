@@ -28,4 +28,8 @@ public interface DataService {
     Map<String, Double> getAverageScoresByLengthRange();
 
     Map<String, Double> getAvgAnswerScoresByUserScoreRange();
+
+    Map<String, Double> getAvgAnswerScoresByTimeRange();
+
+    Map<String, Double> getAvgAnswerScoresByLengthRange();
 }
