@@ -89,6 +89,7 @@ public class DataServiceImpl implements DataService {
     @Override
     public Map<String, Integer> getTopics(int n) {
         Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>(getTopicQuestionMap());
+
         return topicQuestionMap.entrySet()
                 .stream()
                 .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size()))
@@ -221,7 +222,7 @@ public class DataServiceImpl implements DataService {
             scoreRangeMap.put(scoreRange, userCount);
         }
 
-        return scoreRangeMap;
+        return convertToPercentage(scoreRangeMap);
     }
 
     @Override
@@ -256,7 +257,7 @@ public class DataServiceImpl implements DataService {
             scoreRangeMap.put(scoreRange, userCount);
         }
 
-        return scoreRangeMap;
+        return convertToPercentage(scoreRangeMap);
     }
 
     @Override
@@ -291,7 +292,14 @@ public class DataServiceImpl implements DataService {
             scoreRangeMap.put(scoreRange, userCount);
         }
 
-        return scoreRangeMap;
+        return convertToPercentage(scoreRangeMap);
+    }
+
+
+    public Map<String, Integer> convertToPercentage(Map<String, Integer> scores) {
+        int total = scores.values().stream().mapToInt(Integer::intValue).sum();
+        scores.replaceAll((range, count) -> (int) Math.round((count * 100.0) / total));
+        return scores;
     }
 
     @Override
