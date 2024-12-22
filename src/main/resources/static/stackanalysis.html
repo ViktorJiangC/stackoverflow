@@ -114,7 +114,6 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -201,19 +200,10 @@
     <!-- Interface 4 -->
     <div id="interface4" style="display: none;">
         <div class="chart-container">
-            <div class="chart-title">Average User Scores</div>
-            <div class="chart-description">This chart shows the average user scores and those above a score of 10.</div>
+            <div class="chart-title">What Makes a Good Answer?</div>
+            <div class="chart-description">We selected three factors that may influence the answer score, and divided the answers into 10 equal parts based on these factors.<br>
+                The corresponding average scores of the answers are shown in the chart below.</div>
             <canvas id="averageUserScoresChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Response Time Metrics</div>
-            <div class="chart-description">This line chart shows the average response times for simple and professional users over different time intervals.</div>
-            <canvas id="responseTimeMetricsChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <div class="chart-title">Average Scores by Answer Length Range</div>
-            <div class="chart-description">This bar chart shows the relationship between answer length and average scores.</div>
-            <canvas id="averageScoresByLengthRangeChart"></canvas>
         </div>
     </div>
     <div id="refreshButtonContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
@@ -266,7 +256,7 @@
                 }
                 break;
             case 'interface4':
-                if (charts.averageUserScoresChart && charts.responseTimeMetricsChart && charts.averageScoresByLengthRangeChart) {
+                if (charts.averageUserScoresChart) {
                     return;
                 }
                 break;
@@ -459,12 +449,6 @@
         if (charts.averageUserScoresChart) {
             charts.averageUserScoresChart.destroy();
         }
-        if (charts.responseTimeMetricsChart) {
-            charts.responseTimeMetricsChart.destroy();
-        }
-        if (charts.averageScoresByLengthRangeChart) {
-            charts.averageScoresByLengthRangeChart.destroy();
-        }
 
         const averageUserScoresData = await fetchData('/api/Chart/answerByUser');
         const responseTimeData = await fetchData('/api/Chart/answerByTime');
@@ -493,55 +477,6 @@
                         tension: 0.1
                     }
                 ]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        const responseTimeMetricsData = await fetchData('/api/Chart/calculateResponseTimeMetrics');
-        charts.responseTimeMetricsChart = new Chart(document.getElementById('responseTimeMetricsChart'), {
-            type: 'line',
-            data: {
-                labels: Object.keys(responseTimeMetricsData),
-                datasets: [
-                    {
-                        label: 'Simple Avg',
-                        data: Object.values(responseTimeMetricsData).map(item => item.simpleAvg),
-                        fill: false,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Pro Avg',
-                        data: Object.values(responseTimeMetricsData).map(item => item.proAvg),
-                        fill: false,
-                        borderColor: 'rgb(255, 99, 132)',
-                        tension: 0.1
-                    }
-                ]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        const averageScoresByLengthRangeData = await fetchData('/api/Chart/getAverageScoresByLengthRange');
-        charts.averageScoresByLengthRangeChart = new Chart(document.getElementById('averageScoresByLengthRangeChart'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(averageScoresByLengthRangeData),
-                datasets: [{
-                    label: 'Average Scores',
-                    data: Object.values(averageScoresByLengthRangeData),
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }]
             },
             options: {
                 scales: {
