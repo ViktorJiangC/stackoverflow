@@ -55,29 +55,25 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
     List<Object[]> findScoreAverageByLengthRange();
 
     @Query(value = """
-
-            WITH ScoreQuantiles AS (
+            WITH AnswerTimeDifferences AS (
                 SELECT
-                    reputation,
-                    NTILE(10) OVER (ORDER BY reputation) AS score_bucket
-                FROM users
+                    a.score,
+                    u.reputation
+                FROM answers a
+                JOIN users u ON a.user_id = u.user_id
             ),
-                 UserScoreRanges AS (
+                 Quantiles AS (
                      SELECT
-                         sq.score_bucket,
-                         MIN(sq.reputation) AS min_score,
-                         MAX(sq.reputation) AS max_score
-                     FROM ScoreQuantiles sq
-                     GROUP BY sq.score_bucket
+                         score,
+                         NTILE(10) OVER (ORDER BY reputation) AS time_bucket
+                     FROM AnswerTimeDifferences
                  )
             SELECT
-                usr.score_bucket,
-                AVG(a.score) AS average_answer_score
-            FROM UserScoreRanges usr
-                     LEFT JOIN users u ON usr.min_score <= u.reputation AND usr.max_score >= u.reputation
-                     LEFT JOIN answers a ON u.user_id = a.user_id
-            GROUP BY usr.score_bucket
-            ORDER BY usr.score_bucket;
+                q.time_bucket,
+                AVG(q.score) AS average_answer_score
+            FROM Quantiles q
+            GROUP BY q.time_bucket
+            ORDER BY q.time_bucket;
         """, nativeQuery = true)
     List<Object[]> findAvgAnswerScoresByUserScoreRange();
 
@@ -128,28 +124,25 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
 
     @Query(value = """
 
-            WITH ScoreQuantiles AS (
+            WITH AnswerTimeDifferences AS (
                 SELECT
-                    reputation,
-                    NTILE(10) OVER (ORDER BY reputation) AS score_bucket
-                FROM users
+                    a.is_accepted,
+                    u.reputation
+                FROM answers a
+                         JOIN users u ON a.user_id = u.user_id
             ),
-                 UserScoreRanges AS (
+                 Quantiles AS (
                      SELECT
-                         sq.score_bucket,
-                         MIN(sq.reputation) AS min_score,
-                         MAX(sq.reputation) AS max_score
-                     FROM ScoreQuantiles sq
-                     GROUP BY sq.score_bucket
+                         is_accepted,
+                         NTILE(10) OVER (ORDER BY reputation) AS time_bucket
+                     FROM AnswerTimeDifferences
                  )
             SELECT
-                usr.score_bucket,
+                q.time_bucket,
                 AVG(CASE WHEN is_accepted THEN 1 ELSE 0 END) AS average_answer_score
-            FROM UserScoreRanges usr
-                     LEFT JOIN users u ON usr.min_score <= u.reputation AND usr.max_score >= u.reputation
-                     LEFT JOIN answers a ON u.user_id = a.user_id
-            GROUP BY usr.score_bucket
-            ORDER BY usr.score_bucket;
+            FROM Quantiles q
+            GROUP BY q.time_bucket
+            ORDER BY q.time_bucket;
         """, nativeQuery = true)
     List<Object[]> findAcceptedRatesByUserScoreRange();
 
