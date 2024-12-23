@@ -26,18 +26,18 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
             "ORDER BY score_range", nativeQuery = true)
     List<Object[]> findAnswersScoreRanges();
 
-    @Query(value = "SELECT AVG(u.score) AS avg_user_score, " +
-            "(SELECT AVG(u.score) FROM users u JOIN answers a ON a.owneruserid = u.id WHERE a.score > 10 AND u.score IS NOT NULL) AS avg_user_score_above_10 " +
-            "FROM users u JOIN answers a ON a.owneruserid = u.id WHERE a.score IS NOT NULL AND u.score IS NOT NULL", nativeQuery = true)
+    @Query(value = "SELECT AVG(u.reputation) AS avg_user_score, " +
+            "(SELECT AVG(u.reputation) FROM users u JOIN answers a ON a.user_id = u.user_id WHERE a.score > 10 AND u.reputation IS NOT NULL) AS avg_user_score_above_10 " +
+            "FROM users u JOIN answers a ON a.user_id = u.user_id WHERE a.score IS NOT NULL AND u.reputation IS NOT NULL", nativeQuery = true)
     List<Object[]> findAverageUserScores();
 
-    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (a.creationdate - q.creationdate)) / 3600) AS avg_response_time_hours " +
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (a.creation_date - q.creation_date)) / 3600) AS avg_response_time_hours " +
             "FROM answers a " +
-            "JOIN questions q ON a.questionid = q.id " +
+            "JOIN questions q ON a.question_id = q.id " +
             "WHERE (:minScore IS NULL OR a.score > :minScore) " +
-            "AND a.creationdate IS NOT NULL " +
-            "AND q.creationdate IS NOT NULL " +
-            "AND a.creationdate - q.creationdate <= CAST(:interval AS INTERVAL)",
+            "AND a.creation_date IS NOT NULL " +
+            "AND q.creation_date IS NOT NULL " +
+            "AND a.creation_date - q.creation_date <= CAST(:interval AS INTERVAL)",
             nativeQuery = true)
     Double findAvgResponseTimeWithin(@Param("interval") String interval, @Param("minScore") Integer minScore);
 
@@ -75,7 +75,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
                   AVG(a.score) AS average_answer_score
               FROM UserScoreRanges usr
                        LEFT JOIN users u ON usr.min_score <= u.score AND usr.max_score >= u.score
-                       LEFT JOIN answers a ON u.id = a.owneruserid
+                       LEFT JOIN answers a ON u.id = a.user_id
               GROUP BY usr.score_bucket
               ORDER BY usr.score_bucket;
         """, nativeQuery = true)
@@ -86,11 +86,11 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
         WITH AnswerTimeDifferences AS (
             SELECT
                 a.score,
-                a.creationdate AS answer_creation_date,
-                q.creationdate AS question_creation_date,
-                EXTRACT(EPOCH FROM (a.creationdate - q.creationdate)) AS time_difference_seconds
+                a.creation_date AS answer_creation_date,
+                q.creation_date AS question_creation_date,
+                EXTRACT(EPOCH FROM (a.creation_date - q.creation_date)) AS time_difference_seconds
             FROM answers a
-            JOIN questions q ON a.questionid = q.id
+            JOIN questions q ON a.question_id = q.id
         ),
         Quantiles AS (
             SELECT
