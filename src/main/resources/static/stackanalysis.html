@@ -252,13 +252,26 @@
     <!-- Interface 2 -->
     <div id="interface2" style="display: none;">
         <div class="chart-container">
-            <div class="chart-title">Topics Discussion Frequency</div>
-            <div class="chart-description">This chart shows the frequency of topics discussed by users and professional users.</div>
-            <canvas id="topicsChart"></canvas>
+            <div class="chart-title">Top N Topics By Normal Users</div>
+            <div class="chart-description">This chart shows the frequency of top n topics discussed by normal users. <br>
+                The data in this chart is the number of problems corresponding to each tag, calculated as a percentage using Java tags as units
+            </div>
+            <canvas id="topicsChart1"></canvas>
+            <div class="chart-title">Top N Topics By Professional Users</div>
+            <div class="chart-description">This chart shows the frequency of top n topics discussed by professional users. <br>
+                The data in this chart is the number of problems corresponding to each tag, calculated as a percentage using Java tags as units
+            </div>
+            <canvas id="topicsChart2"></canvas>
+            <div class="chart-title">Top N Engaged Topics By Professional Users</div>
+            <div class="chart-description">This chart shows the top n engaged topics discussed by professional users. <br>
+                Normalize the score, view_count, and answer_count of the questions that professional users participate in, and add them up to obtain the question score. <br>
+                Calculate the sum of the question scores.
+            </div>
+            <canvas id="topicsChart3"></canvas>
         </div>
         <div class="input-container">
             <label for="topicsN">N:</label>
-            <input type="number" id="topicsN" value="8" min="1" max="8">
+            <input type="number" id="topicsN" value="8" min="1" max="20" style="width: 80px;">
             <button onclick="reload('interface2')">Reload</button>
         </div>
     </div>
@@ -346,7 +359,7 @@
                 }
                 break;
             case 'interface2':
-                if (charts.topicsChart) {
+                if (charts.topicsChart1 && charts.topicsChart2 && charts.topicsChart3) {
                     return;
                 }
                 break;
@@ -475,52 +488,105 @@
     async function reloadInterface2() {
         topicN = document.getElementById('topicsN').value;
 
-        if (charts.topicsChart) {
-            charts.topicsChart.destroy();
+        if (charts.topicsChart1) {
+            charts.topicsChart1.destroy();
+        }
+        if (charts.topicsChart2) {
+            charts.topicsChart2.destroy();
+        }
+        if (charts.topicsChart3) {
+            charts.topicsChart3.destroy();
         }
 
         const topicsData = await fetchData('/api/Chart/getTopics', { n:topicN });
-        // const proTopicsData = await fetchData('/api/Chart/getProTopics', { n:topicN });
+        const proTopicsData = await fetchData('/api/Chart/getProTopics', { n:topicN });
 
-        // Calculate the total counts for both topicsData and proTopicsData
-        const totalTopics = Object.values(topicsData).reduce((sum, value) => sum + value, 0);
-        // const totalProTopics = Object.values(proTopicsData).reduce((sum, value) => sum + value, 0);
+        const totalTopics = topicsData['java'] || 0;
+        const totalProTopics = proTopicsData['java'] || 0;
+
+        delete topicsData['java'];
+        delete proTopicsData['java'];
 
         // Calculate the proportion for each topic (percentage)
-        const topicsProportions = Object.keys(topicsData).map(label => {
+        const topicsProportions = Object.keys(topicsData).filter(label => label !== 'java').map(label => {
             return (topicsData[label] / totalTopics) * 100;
         });
+        const proTopicsProportions = Object.keys(proTopicsData).filter(label => label !== 'java').map(label => {
+            return (proTopicsData[label] / totalProTopics) * 100;
+        });
 
-        // const proTopicsProportions = Object.keys(proTopicsData).map(label => {
-        //     return (proTopicsData[label] / totalProTopics) * 100;
-        // });
-
-        // const labels = [...new Set([...Object.keys(topicsData), ...Object.keys(proTopicsData)])];
-        const labels = [...new Set([...Object.keys(topicsData)])];
+        const labels = Object.keys(topicsData);
+        const proLabels = Object.keys(proTopicsData);
 
         const topicsProportionsForLabels = labels.map(label => topicsProportions[Object.keys(topicsData).indexOf(label)] || 0);
-        // const proTopicsProportionsForLabels = labels.map(label => proTopicsProportions[Object.keys(proTopicsData).indexOf(label)] || 0);
+        const proTopicsProportionsForLabels = proLabels.map(label => proTopicsProportions[Object.keys(proTopicsData).indexOf(label)] || 0);
 
-        charts.topicsChart = new Chart(document.getElementById('topicsChart'), {
+        charts.topicsChart1 = new Chart(document.getElementById('topicsChart1'), {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Topics',
+                        label: 'Normal Users',
                         data: topicsProportionsForLabels,
                         backgroundColor: 'rgba(255, 159, 64, 0.2)',
                         borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1
                     }
-                    // ,
-                    // {
-                    //     label: 'Professional Topics',
-                    //     data: proTopicsProportionsForLabels,
-                    //     backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    //     borderColor: 'rgba(75, 192, 192, 1)',
-                    //     borderWidth: 1
-                    // }
+                ]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        charts.topicsChart2 = new Chart(document.getElementById('topicsChart2'), {
+            type: 'bar',
+            data: {
+                labels: proLabels,
+                datasets: [
+                    {
+                        label: 'Professional Users',
+                        data: proTopicsProportionsForLabels,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        const proMostEngagedTopics = await fetchData('/api/Chart/getMostEngagedTopics', { n:topicN });
+
+        const total = proMostEngagedTopics['java'] || 0;
+        delete proMostEngagedTopics['java'];
+        const proportions = Object.keys(proMostEngagedTopics).filter(label => label !== 'java').map(label => {
+            return (proMostEngagedTopics[label] / total) * 100;
+        });
+        const label = Object.keys(proMostEngagedTopics);
+
+        const EngagedProportionsForLabels = label.map(label => proportions[Object.keys(proMostEngagedTopics).indexOf(label)] || 0);
+
+
+        charts.topicsChart3 = new Chart(document.getElementById('topicsChart3'), {
+            type: 'bar',
+            data: {
+                labels: label,
+                datasets: [
+                    {
+                        label: 'Professional Users',
+                        data: EngagedProportionsForLabels,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
                 ]
             },
             options: {

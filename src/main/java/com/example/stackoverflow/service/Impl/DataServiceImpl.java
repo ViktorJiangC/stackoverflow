@@ -139,51 +139,26 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public Map<String, Integer> getProTopics(int n) {
-        Map<String, Integer> proTopics = new HashMap<>();
-        // 获取 pro 用户
-        Set<User> proUsers = new HashSet<>(userRepository.findUsersByScoreGreaterThan(100));
-        List<Answer> proAnswers = answerRepository.findAnswersByOwnerUserIsIn(proUsers);
-        Map<String, Set<Integer>> topicQuestionMap = getTopicQuestionMap();
-        // 获取 pro 用户回答的所有问题 ID
-        List<Integer> proQuestions = proAnswers.stream()
-                .map(Answer::getQuestion)
-                .map(Question::getId)
-                .toList();
+        List<Object[]> result = questionRepository.findTopNTagsByProUsers(n);
+        return result.stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).intValue(),
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+    }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(8);
-        List<Callable<Map.Entry<String, Integer>>> tasks = topicQuestionMap.entrySet().stream()
-                .map(entry -> (Callable<Map.Entry<String, Integer>>) () -> {
-                    long count = entry.getValue().stream()
-                            .filter(proQuestions::contains)
-                            .count();
-                    return new AbstractMap.SimpleEntry<>(entry.getKey(), (int) count);
-                })
-                .collect(Collectors.toList());
-
-        try {
-            List<Future<Map.Entry<String, Integer>>> results = executorService.invokeAll(tasks);
-            for (Future<Map.Entry<String, Integer>> future : results) {
-                Map.Entry<String, Integer> entry = future.get();
-                proTopics.put(entry.getKey(), entry.getValue());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread execution interrupted", e);
-        } finally {
-            executorService.shutdown();
-        }
-        return Collections.unmodifiableMap(
-                proTopics.entrySet()
-                        .stream()
-                        .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue()))
-                        .limit(n)// 降序排序
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (e1, e2) -> e1,
-                                LinkedHashMap::new // 保持插入顺序
-                        ))
-        );
+    @Override
+    public Map<String, Integer> getMostEngagedTopics(int n) {
+        List<Object[]> result = questionRepository.findTopNEngagedTagsByProUsers(n);
+        return result.stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).intValue(),
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
     }
 
     @Override

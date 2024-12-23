@@ -31,8 +31,45 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
        FROM TagList
        GROUP BY tag
        ORDER BY count DESC
-       LIMIT :n
-       OFFSET 1;
+       LIMIT :n;
     """, nativeQuery = true)
     List<Object[]> findTopNTags(int n);
+
+    @Query(value = """
+       WITH TagList AS(
+           SELECT
+               unnest(string_to_array(trim(both '<>' from q.tags), '><')) AS tag
+           FROM answers a
+                    JOIN public.users u on u.user_id = a.user_id
+                    JOIN public.questions q on a.question_id = q.id
+           WHERE u.reputation > 10000
+       )
+       SELECT tag, COUNT(*) AS count
+       FROM TagList
+       GROUP BY tag
+       ORDER BY count DESC
+       LIMIT :n;
+    """, nativeQuery = true)
+    List<Object[]> findTopNTagsByProUsers(int n);
+
+
+    @Query(value = """
+       WITH TagList AS (
+           SELECT
+               unnest(string_to_array(trim(both '<>' from tags), '><')) AS tag,
+               100.0 * (q.score - (SELECT MIN(score) FROM questions)) / ((SELECT MAX(score) FROM questions) - (SELECT MIN(score) FROM questions)) as score_,
+               100.0 * (view_count - (SELECT MIN(view_count) FROM questions)) / ((SELECT MAX(view_count) FROM questions) - (SELECT MIN(view_count) FROM questions)) as view_count_,
+               100.0 * (answer_count - (SELECT MIN(answer_count) FROM questions)) / ((SELECT MAX(answer_count) FROM questions) - (SELECT MIN(answer_count) FROM questions)) as answer_count_
+           FROM answers a
+                    JOIN public.users u on u.user_id = a.user_id
+                    JOIN public.questions q on a.question_id = q.id
+           WHERE u.reputation > 10000
+       )
+       SELECT tag, SUM(score_ + view_count_ + answer_count_) AS total_score
+       FROM TagList
+       GROUP BY tag
+       ORDER BY total_score DESC
+       LIMIT :n;
+    """, nativeQuery = true)
+    List<Object[]> findTopNEngagedTagsByProUsers(int n);
 }

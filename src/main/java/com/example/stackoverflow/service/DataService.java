@@ -21,6 +21,8 @@ public interface DataService {
 
     Map<String, Integer> getProTopics(int n);
 
+    Map<String, Integer> getMostEngagedTopics(int n);
+
     Map<String, Double> getAverageUserScores();
 
     Map<String, Map<String, Double>> calculateResponseTimeMetrics();

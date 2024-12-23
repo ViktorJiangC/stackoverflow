@@ -40,12 +40,16 @@ public class ChartController {
     //一下几个方法的返回值均为Map<String, Integer>，话题（字符串），对应的数量（整型），界面2
     @GetMapping("/getTopics")
     public Map<String, Integer> getTopics(@RequestParam int n) {
-        return dataService.getTopics(n);
+        return dataService.getTopics(n + 1);
     }
     //用户常讨论的话题
     @GetMapping("/getProTopics")
     public Map<String, Integer> getProTopics(@RequestParam int n) {
-        return dataService.getProTopics(n);
+        return dataService.getProTopics(n + 1);
+    }
+    @GetMapping("/getMostEngagedTopics")
+    public Map<String, Integer> getMostEngagedTopics(@RequestParam int n) {
+        return dataService.getMostEngagedTopics(n + 1);
     }
     //专业用户常讨论的话题，和上一个方法画在同一个柱状图中
     @GetMapping("/getErrors")
