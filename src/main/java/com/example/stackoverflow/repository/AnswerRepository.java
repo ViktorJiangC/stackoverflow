@@ -57,32 +57,31 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
     @Query(value = """
 
             WITH ScoreQuantiles AS (
-                  SELECT
-                      score,
-                      NTILE(10) OVER (ORDER BY score) AS score_bucket
-                  FROM users
-              ),
-                   UserScoreRanges AS (
-                       SELECT
-                           sq.score_bucket,
-                           MIN(sq.score) AS min_score,
-                           MAX(sq.score) AS max_score
-                       FROM ScoreQuantiles sq
-                       GROUP BY sq.score_bucket
-                   )
-              SELECT
-                  usr.score_bucket,
-                  AVG(a.score) AS average_answer_score
-              FROM UserScoreRanges usr
-                       LEFT JOIN users u ON usr.min_score <= u.score AND usr.max_score >= u.score
-                       LEFT JOIN answers a ON u.id = a.user_id
-              GROUP BY usr.score_bucket
-              ORDER BY usr.score_bucket;
+                SELECT
+                    reputation,
+                    NTILE(10) OVER (ORDER BY reputation) AS score_bucket
+                FROM users
+            ),
+                 UserScoreRanges AS (
+                     SELECT
+                         sq.score_bucket,
+                         MIN(sq.reputation) AS min_score,
+                         MAX(sq.reputation) AS max_score
+                     FROM ScoreQuantiles sq
+                     GROUP BY sq.score_bucket
+                 )
+            SELECT
+                usr.score_bucket,
+                AVG(a.score) AS average_answer_score
+            FROM UserScoreRanges usr
+                     LEFT JOIN users u ON usr.min_score <= u.reputation AND usr.max_score >= u.reputation
+                     LEFT JOIN answers a ON u.user_id = a.user_id
+            GROUP BY usr.score_bucket
+            ORDER BY usr.score_bucket;
         """, nativeQuery = true)
     List<Object[]> findAvgAnswerScoresByUserScoreRange();
 
     @Query(value = """
-
         WITH AnswerTimeDifferences AS (
             SELECT
                 a.score,
