@@ -124,4 +124,77 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
         """, nativeQuery = true
     )
     List<Object[]> findAvgAnswerScoresByLengthRange();
+
+
+    @Query(value = """
+
+            WITH ScoreQuantiles AS (
+                SELECT
+                    reputation,
+                    NTILE(10) OVER (ORDER BY reputation) AS score_bucket
+                FROM users
+            ),
+                 UserScoreRanges AS (
+                     SELECT
+                         sq.score_bucket,
+                         MIN(sq.reputation) AS min_score,
+                         MAX(sq.reputation) AS max_score
+                     FROM ScoreQuantiles sq
+                     GROUP BY sq.score_bucket
+                 )
+            SELECT
+                usr.score_bucket,
+                AVG(CASE WHEN is_accepted THEN 1 ELSE 0 END) AS average_answer_score
+            FROM UserScoreRanges usr
+                     LEFT JOIN users u ON usr.min_score <= u.reputation AND usr.max_score >= u.reputation
+                     LEFT JOIN answers a ON u.user_id = a.user_id
+            GROUP BY usr.score_bucket
+            ORDER BY usr.score_bucket;
+        """, nativeQuery = true)
+    List<Object[]> findAcceptedRatesByUserScoreRange();
+
+    @Query(value = """
+
+            WITH AnswerTimeDifferences AS (
+            SELECT
+                a.is_accepted,
+                a.creation_date AS answer_creation_date,
+                q.creation_date AS question_creation_date,
+                EXTRACT(EPOCH FROM (a.creation_date - q.creation_date)) AS time_difference_seconds
+            FROM answers a
+                     JOIN questions q ON a.question_id = q.id
+        ),
+             Quantiles AS (
+                 SELECT
+                     is_accepted,
+                     NTILE(10) OVER (ORDER BY time_difference_seconds) AS time_bucket
+                 FROM AnswerTimeDifferences
+             )
+        SELECT
+            q.time_bucket,
+            AVG(CASE WHEN is_accepted THEN 1 ELSE 0 END) AS average_answer_score
+        FROM Quantiles q
+        GROUP BY q.time_bucket
+        ORDER BY q.time_bucket;
+        """, nativeQuery = true)
+    List<Object[]> findAcceptedRatesByTimeRange();
+
+    @Query(
+            value = """
+            WITH AnswerLengthBuckets AS (
+                SELECT
+                    a.is_accepted,
+                    LENGTH(a.body) AS body_length,
+                    NTILE(10) OVER (ORDER BY LENGTH(a.body)) AS length_bucket
+                FROM answers a
+            )
+            SELECT
+                al.length_bucket,
+                AVG(CASE WHEN is_accepted THEN 1 ELSE 0 END) AS average_answer_score
+            FROM AnswerLengthBuckets al
+            GROUP BY al.length_bucket
+            ORDER BY al.length_bucket;
+        """, nativeQuery = true
+    )
+    List<Object[]> findAcceptedRatesByLengthRange();
 }

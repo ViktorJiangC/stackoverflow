@@ -297,6 +297,10 @@
             <div class="chart-description">We selected three factors that may influence the answer score, and divided the answers into 10 equal parts based on these factors.<br>
                 The corresponding average scores of the answers are shown in the chart below.</div>
             <canvas id="averageUserScoresChart"></canvas>
+
+            <div class="chart-description">We selected three factors that may influence the answer score, and divided the answers into 10 equal parts based on these factors.<br>
+                The corresponding average accepted rate of the answers are shown in the chart below.</div>
+            <canvas id="acceptedRateChart"></canvas>
         </div>
     </div>
 
@@ -369,7 +373,7 @@
                 }
                 break;
             case 'interface4':
-                if (charts.averageUserScoresChart) {
+                if (charts.averageUserScoresChart && charts.acceptedRateChart) {
                     return;
                 }
                 break;
@@ -622,6 +626,9 @@
         if (charts.averageUserScoresChart) {
             charts.averageUserScoresChart.destroy();
         }
+        if (charts.acceptedRateChart) {
+            charts.acceptedRateChart.destroy();
+        }
 
         const averageUserScoresData = await fetchData('/api/Chart/answerByUser');
         const responseTimeData = await fetchData('/api/Chart/answerByTime');
@@ -632,7 +639,7 @@
                 labels: Object.keys(averageUserScoresData),
                 datasets: [
                     {
-                        label: 'User Scores',
+                        label: 'User Reputation',
                         data: Object.values(averageUserScoresData),
                         borderColor: 'rgb(54, 162, 235)',
                         tension: 0.1
@@ -646,6 +653,41 @@
                     {
                         label: 'Answer Length',
                         data: Object.values(answerLengthData),
+                        borderColor: 'rgb(255, 159, 64)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        const averageUserScoresData_ = await fetchData('/api/Chart/acceptedByUser');
+        const responseTimeData_ = await fetchData('/api/Chart/acceptedByTime');
+        const answerLengthData_ = await fetchData('/api/Chart/acceptedByLength');
+        charts.acceptedRateChart = new Chart(document.getElementById('acceptedRateChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(averageUserScoresData_),
+                datasets: [
+                    {
+                        label: 'User Reputation',
+                        data: Object.values(averageUserScoresData_),
+                        borderColor: 'rgb(54, 162, 235)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Response Time',
+                        data: Object.values(responseTimeData_),
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Answer Length',
+                        data: Object.values(answerLengthData_),
                         borderColor: 'rgb(255, 159, 64)',
                         tension: 0.1
                     }

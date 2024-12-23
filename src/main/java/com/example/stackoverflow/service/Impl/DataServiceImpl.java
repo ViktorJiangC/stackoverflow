@@ -374,4 +374,49 @@ public class DataServiceImpl implements DataService {
                         )
                 );
     }
+
+    @Override
+    public Map<String, Double> getAcceptedRatesByUserScoreRange() {
+        List<Object[]> results = answerRepository.findAcceptedRatesByUserScoreRange();
+        //转换为Map
+        return results.stream()
+                .collect(
+                        Collectors.toMap(
+                                result -> String.valueOf((Integer) result[0] - 1),       // Key: user score range
+                                result -> ((Number) result[1]).doubleValue(),       // Value: accepted rate
+                                (existing, replacement) -> existing, // Merge function (not needed here)
+                                HashMap::new
+                        )
+                );
+    }
+
+    @Override
+    public Map<String, Double> getAcceptedRatesByTimeRange() {
+        List<Object[]> results = answerRepository.findAcceptedRatesByTimeRange();
+        //转换为Map
+        return results.stream()
+                .collect(
+                        Collectors.toMap(
+                                result -> String.valueOf((Integer) result[0] - 1),       // Key: time range
+                                result -> ((Number) result[1]).doubleValue(),       // Value: accepted rate
+                                (existing, replacement) -> existing, // Merge function (not needed here)
+                                HashMap::new
+                        )
+                );
+    }
+
+    @Override
+    public Map<String, Double> getAcceptedRatesByLengthRange() {
+        List<Object[]> results = answerRepository.findAcceptedRatesByLengthRange();
+        //转换为Map
+        return results.stream()
+                .collect(
+                        Collectors.toMap(
+                                result -> String.valueOf((Integer) result[0] - 1),       // Key: length range
+                                result -> ((Number) result[1]).doubleValue(),       // Value: accepted rate
+                                (existing, replacement) -> existing, // Merge function (not needed here)
+                                HashMap::new
+                        )
+                );
+    }
 }

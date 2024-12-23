@@ -34,4 +34,10 @@ public interface DataService {
     Map<String, Double> getAvgAnswerScoresByTimeRange();
 
     Map<String, Double> getAvgAnswerScoresByLengthRange();
+
+    Map<String, Double> getAcceptedRatesByUserScoreRange();
+
+    Map<String, Double> getAcceptedRatesByTimeRange();
+
+    Map<String, Double> getAcceptedRatesByLengthRange();
 }

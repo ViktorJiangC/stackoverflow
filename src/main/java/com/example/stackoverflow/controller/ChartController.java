@@ -132,4 +132,20 @@ public class ChartController {
     public Map<String, Double> getAnswerByLength() {
         return dataService.getAvgAnswerScoresByLengthRange();
     }
+
+    @GetMapping("/acceptedByUser")
+    public Map<String, Double> getAcceptedRatesByUser() {
+        return dataService.getAcceptedRatesByUserScoreRange();
+    }
+
+    @GetMapping("/acceptedByTime")
+    public Map<String, Double> getAcceptedRatesByTime() {
+        return dataService.getAcceptedRatesByTimeRange();
+    }
+
+    @GetMapping("/acceptedByLength")
+    public Map<String, Double> getAcceptedRatesByLength() {
+        return dataService.getAcceptedRatesByLengthRange();
+    }
+
 }
