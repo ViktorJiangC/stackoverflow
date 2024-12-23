@@ -242,11 +242,11 @@
 <!--            <div class="chart-description">This chart shows the distribution of user scores in different ranges.</div>-->
 <!--            <canvas id="usersDistributionChart"></canvas>-->
 <!--        </div>-->
-        <div class="chart-container">
-            <div class="chart-title">Questions and Answers Score Distribution</div>
-            <div class="chart-description">This chart shows the distribution of questions and answers scores in different ranges.</div>
-            <canvas id="questionsAndAnswersDistributionChart"></canvas>
-        </div>
+<!--        <div class="chart-container">-->
+<!--            <div class="chart-title">Questions and Answers Score Distribution</div>-->
+<!--            <div class="chart-description">This chart shows the distribution of questions and answers scores in different ranges.</div>-->
+<!--            <canvas id="questionsAndAnswersDistributionChart"></canvas>-->
+<!--        </div>-->
     </div>
 
     <!-- Interface 2 -->
@@ -341,7 +341,7 @@
     async function load(interfaceId) {
         switch (interfaceId) {
             case 'interface1':
-                if (charts.dataSizeChart && charts.questionsAndAnswersDistributionChart) {
+                if (charts.dataSizeChart) {
                     return;
                 }
                 break;
@@ -397,9 +397,9 @@
         // if (charts.usersDistributionChart) {
         //     charts.usersDistributionChart.destroy();
         // }
-        if (charts.questionsAndAnswersDistributionChart) {
-            charts.questionsAndAnswersDistributionChart.destroy();
-        }
+        // if (charts.questionsAndAnswersDistributionChart) {
+        //     charts.questionsAndAnswersDistributionChart.destroy();
+        // }
         // Interface 1
         const dataSizeData = await fetchData('/api/Chart/getDataSize');
         charts.dataSizeChart = new Chart(document.getElementById('dataSizeChart'), {
@@ -441,35 +441,35 @@
         //     }
         // });
 
-        const questionsDistributionData = await fetchData('/api/Chart/getQuestionsDistribution');
-        const answersDistributionData = await fetchData('/api/Chart/getAnswersDistribution');
-        charts.questionsAndAnswersDistributionChart = new Chart(document.getElementById('questionsAndAnswersDistributionChart'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(questionsDistributionData),
-                datasets: [
-                    {
-                        label: 'Questions Distribution',
-                        data: Object.values(questionsDistributionData),
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Answers Distribution',
-                        data: Object.values(answersDistributionData),
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+        // const questionsDistributionData = await fetchData('/api/Chart/getQuestionsDistribution');
+        // const answersDistributionData = await fetchData('/api/Chart/getAnswersDistribution');
+        // charts.questionsAndAnswersDistributionChart = new Chart(document.getElementById('questionsAndAnswersDistributionChart'), {
+        //     type: 'bar',
+        //     data: {
+        //         labels: Object.keys(questionsDistributionData),
+        //         datasets: [
+        //             {
+        //                 label: 'Questions Distribution',
+        //                 data: Object.values(questionsDistributionData),
+        //                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        //                 borderColor: 'rgba(255, 99, 132, 1)',
+        //                 borderWidth: 1
+        //             },
+        //             {
+        //                 label: 'Answers Distribution',
+        //                 data: Object.values(answersDistributionData),
+        //                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        //                 borderColor: 'rgba(54, 162, 235, 1)',
+        //                 borderWidth: 1
+        //             }
+        //         ]
+        //     },
+        //     options: {
+        //         scales: {
+        //             y: { beginAtZero: true }
+        //         }
+        //     }
+        // });
     }
 
     async function reloadInterface2() {
@@ -480,25 +480,26 @@
         }
 
         const topicsData = await fetchData('/api/Chart/getTopics', { n:topicN });
-        const proTopicsData = await fetchData('/api/Chart/getProTopics', { n:topicN });
+        // const proTopicsData = await fetchData('/api/Chart/getProTopics', { n:topicN });
 
         // Calculate the total counts for both topicsData and proTopicsData
         const totalTopics = Object.values(topicsData).reduce((sum, value) => sum + value, 0);
-        const totalProTopics = Object.values(proTopicsData).reduce((sum, value) => sum + value, 0);
+        // const totalProTopics = Object.values(proTopicsData).reduce((sum, value) => sum + value, 0);
 
         // Calculate the proportion for each topic (percentage)
         const topicsProportions = Object.keys(topicsData).map(label => {
             return (topicsData[label] / totalTopics) * 100;
         });
 
-        const proTopicsProportions = Object.keys(proTopicsData).map(label => {
-            return (proTopicsData[label] / totalProTopics) * 100;
-        });
+        // const proTopicsProportions = Object.keys(proTopicsData).map(label => {
+        //     return (proTopicsData[label] / totalProTopics) * 100;
+        // });
 
-        const labels = [...new Set([...Object.keys(topicsData), ...Object.keys(proTopicsData)])];
+        // const labels = [...new Set([...Object.keys(topicsData), ...Object.keys(proTopicsData)])];
+        const labels = [...new Set([...Object.keys(topicsData)])];
 
         const topicsProportionsForLabels = labels.map(label => topicsProportions[Object.keys(topicsData).indexOf(label)] || 0);
-        const proTopicsProportionsForLabels = labels.map(label => proTopicsProportions[Object.keys(proTopicsData).indexOf(label)] || 0);
+        // const proTopicsProportionsForLabels = labels.map(label => proTopicsProportions[Object.keys(proTopicsData).indexOf(label)] || 0);
 
         charts.topicsChart = new Chart(document.getElementById('topicsChart'), {
             type: 'bar',
@@ -511,14 +512,15 @@
                         backgroundColor: 'rgba(255, 159, 64, 0.2)',
                         borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1
-                    },
-                    {
-                        label: 'Professional Topics',
-                        data: proTopicsProportionsForLabels,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
                     }
+                    // ,
+                    // {
+                    //     label: 'Professional Topics',
+                    //     data: proTopicsProportionsForLabels,
+                    //     backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    //     borderColor: 'rgba(75, 192, 192, 1)',
+                    //     borderWidth: 1
+                    // }
                 ]
             },
             options: {

@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
-    List<Question> findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(String body, String title, String tag);
-
-    List<Question> findQuestionsByClosedDateIsNotNullAndCreationDateIsNotNull();
+    List<Question> findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(String body, String title, String tag);
 
     @Query(value = "SELECT " +
             "   CASE " +
@@ -22,4 +20,19 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             "GROUP BY score_range " +
             "ORDER BY score_range", nativeQuery = true)
     List<Object[]> findQuestionsScoreRanges();
+
+    @Query(value = """
+       WITH TagList AS (
+           SELECT
+               unnest(string_to_array(trim(both '<>' from tags), '><')) AS tag
+           FROM questions
+       )
+       SELECT tag, COUNT(*) AS count
+       FROM TagList
+       GROUP BY tag
+       ORDER BY count DESC
+       LIMIT :n
+       OFFSET 1;
+    """, nativeQuery = true)
+    List<Object[]> findTopNTags(int n);
 }

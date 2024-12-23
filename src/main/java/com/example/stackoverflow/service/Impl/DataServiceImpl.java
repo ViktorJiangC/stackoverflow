@@ -29,7 +29,7 @@ public class DataServiceImpl implements DataService {
             if(topic.getTopicName().equals(keyword)){
                 Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String key : topic.getKeywords()) {
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
                             key, key, key);
                     matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }
@@ -40,14 +40,14 @@ public class DataServiceImpl implements DataService {
             if(error.getErrorName().equals(keyword)) {
                 Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String key : error.getKeywords()) {
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
                             key, key, key);
                     matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }
                 return questionIds.size();
             }
         }
-        return questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+        return questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
                 keyword, keyword, keyword).size();
     }
 
@@ -67,7 +67,7 @@ public class DataServiceImpl implements DataService {
             tasks.add(() -> {
                 Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String keyword : topic.getKeywords()) {
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
                             keyword, keyword, keyword);
                     matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }
@@ -88,15 +88,11 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public Map<String, Integer> getTopics(int n) {
-        Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>(getTopicQuestionMap());
-
-        return topicQuestionMap.entrySet()
-                .stream()
-                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size()))
-                .limit(n)// Sorting by size in descending order
+        List<Object[]> result = questionRepository.findTopNTags(n);
+        return result.stream()
                 .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().size(),
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).intValue(),
                         (e1, e2) -> e1,
                         LinkedHashMap::new
                 ));
@@ -112,7 +108,7 @@ public class DataServiceImpl implements DataService {
             tasks.add(() -> {
                 Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String keyword : error.getKeywords()) {
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagContainingIgnoreCase(
+                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
                             keyword, keyword, keyword);
                     matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }

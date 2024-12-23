@@ -13,9 +13,10 @@ public class Question {
     private Timestamp creationDate;
     private Timestamp closedDate;
     private Integer score;
+    private Integer viewCount;
+
     private String title;
-    @Column(name = "body", columnDefinition = "TEXT")
+    @Column(name = "body_text", columnDefinition = "TEXT")
     private String body;
-    private String tag;
-    // Getters and Setters
+    private String tags;
 }
