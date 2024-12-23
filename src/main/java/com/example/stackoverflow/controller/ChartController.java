@@ -15,8 +15,8 @@ public class ChartController {
 
     //搜索keyword相关的问题
     @GetMapping("/search")
-    public int search(@RequestParam String keyword) {
-        return dataService.search(keyword);
+    public Map<String, Integer> search(@RequestParam String keyword) {
+        return Map.of(keyword, dataService.search(keyword));
     }
 
     //基本数据信息，界面1
