@@ -237,11 +237,11 @@
             <div class="chart-description">This chart shows the distribution of data sizes.</div>
             <canvas id="dataSizeChart"></canvas>
         </div>
-        <div class="chart-container">
-            <div class="chart-title">Users Score Distribution</div>
-            <div class="chart-description">This chart shows the distribution of user scores in different ranges.</div>
-            <canvas id="usersDistributionChart"></canvas>
-        </div>
+<!--        <div class="chart-container">-->
+<!--            <div class="chart-title">Users Score Distribution</div>-->
+<!--            <div class="chart-description">This chart shows the distribution of user scores in different ranges.</div>-->
+<!--            <canvas id="usersDistributionChart"></canvas>-->
+<!--        </div>-->
         <div class="chart-container">
             <div class="chart-title">Questions and Answers Score Distribution</div>
             <div class="chart-description">This chart shows the distribution of questions and answers scores in different ranges.</div>
@@ -341,7 +341,7 @@
     async function load(interfaceId) {
         switch (interfaceId) {
             case 'interface1':
-                if (charts.dataSizeChart && charts.usersDistributionChart && charts.questionsAndAnswersDistributionChart) {
+                if (charts.dataSizeChart && charts.questionsAndAnswersDistributionChart) {
                     return;
                 }
                 break;
@@ -394,9 +394,9 @@
         if (charts.dataSizeChart) {
             charts.dataSizeChart.destroy();
         }
-        if (charts.usersDistributionChart) {
-            charts.usersDistributionChart.destroy();
-        }
+        // if (charts.usersDistributionChart) {
+        //     charts.usersDistributionChart.destroy();
+        // }
         if (charts.questionsAndAnswersDistributionChart) {
             charts.questionsAndAnswersDistributionChart.destroy();
         }
@@ -421,25 +421,25 @@
             }
         });
 
-        const usersDistributionData = await fetchData('/api/Chart/getUsersDistribution');
-        charts.usersDistributionChart = new Chart(document.getElementById('usersDistributionChart'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(usersDistributionData),
-                datasets: [{
-                    label: 'Users Distribution',
-                    data: Object.values(usersDistributionData),
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+        // const usersDistributionData = await fetchData('/api/Chart/getUsersDistribution');
+        // charts.usersDistributionChart = new Chart(document.getElementById('usersDistributionChart'), {
+        //     type: 'bar',
+        //     data: {
+        //         labels: Object.keys(usersDistributionData),
+        //         datasets: [{
+        //             label: 'Users Distribution',
+        //             data: Object.values(usersDistributionData),
+        //             backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        //             borderColor: 'rgba(153, 102, 255, 1)',
+        //             borderWidth: 1
+        //         }]
+        //     },
+        //     options: {
+        //         scales: {
+        //             y: { beginAtZero: true }
+        //         }
+        //     }
+        // });
 
         const questionsDistributionData = await fetchData('/api/Chart/getQuestionsDistribution');
         const answersDistributionData = await fetchData('/api/Chart/getAnswersDistribution');
