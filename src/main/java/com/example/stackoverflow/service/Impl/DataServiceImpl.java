@@ -25,30 +25,19 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public int search(String keyword) {
-        for(JavaTopic topic : JavaTopic.values()) {
-            if(topic.getTopicName().equals(keyword)){
-                Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
-                for (String key : topic.getKeywords()) {
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
-                            key, key, key);
-                    matchingQuestions.forEach(question -> questionIds.add(question.getId()));
-                }
-                return questionIds.size();
-            }
-        }
         for(JavaError error : JavaError.values()) {
             if(error.getErrorName().equals(keyword)) {
                 Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String key : error.getKeywords()) {
                     List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
-                            key, key, key);
+                            key);
                     matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }
                 return questionIds.size();
             }
         }
         return questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
-                keyword, keyword, keyword).size();
+                keyword).size();
     }
 
     @Override
@@ -56,34 +45,6 @@ public class DataServiceImpl implements DataService {
         return Map.of("answer", answerRepository.count(),
                 "question", questionRepository.count(),
                 "user", userRepository.count());
-    }
-
-    private Map<String, Set<Integer>> getTopicQuestionMap() {
-        Map<String, Set<Integer>> topicQuestionMap = new ConcurrentHashMap<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(16);
-        List<Callable<Void>> tasks = new ArrayList<>();
-        // 初始化 Topics 数据
-        for (JavaTopic topic : JavaTopic.values()) {
-            tasks.add(() -> {
-                Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
-                for (String keyword : topic.getKeywords()) {
-                    List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
-                            keyword, keyword, keyword);
-                    matchingQuestions.forEach(question -> questionIds.add(question.getId()));
-                }
-                topicQuestionMap.put(topic.getTopicName(), questionIds);
-                return null;
-            });
-        }
-        try {
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread execution interrupted", e);
-        } finally {
-            executorService.shutdown();
-        }
-        return topicQuestionMap;
     }
 
     @Override
@@ -109,7 +70,7 @@ public class DataServiceImpl implements DataService {
                 Set<Integer> questionIds = ConcurrentHashMap.newKeySet();
                 for (String keyword : error.getKeywords()) {
                     List<Question> matchingQuestions = questionRepository.findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(
-                            keyword, keyword, keyword);
+                            keyword);
                     matchingQuestions.forEach(question -> questionIds.add(question.getId()));
                 }
                 errorQuestionMap.put(error.getErrorName(), questionIds);

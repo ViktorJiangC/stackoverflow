@@ -7,7 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
-    List<Question> findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(String body, String title, String tag);
+    @Query(value = """
+        SELECT *
+        FROM questions
+        WHERE CONCAT(body_text, title, tags) LIKE CONCAT('%',:keyword,'%');
+    """, nativeQuery = true)
+    List<Question> findQuestionsByBodyContainingIgnoreCaseOrTitleContainingIgnoreCaseOrTagsContainingIgnoreCase(String keyword);
 
     @Query(value = "SELECT " +
             "   CASE " +
