@@ -10,9 +10,9 @@ import java.util.Map;
 public interface UserRepository extends JpaRepository<User, Integer> {
     @Query(value = "SELECT " +
             "   CASE " +
-            "       WHEN score < 0 THEN 'Below 0' " +
-            "       WHEN score >= 20 THEN 'Above 20' " +
-            "       ELSE CONCAT('Between ', FLOOR(score / 4) * 4, ' and ', (FLOOR(score / 4) + 1) * 4) " +
+            "       WHEN reputation < 0 THEN 'Below 0' " +
+            "       WHEN reputation >= 20 THEN 'Above 20' " +
+            "       ELSE CONCAT('Between ', FLOOR(reputation / 4) * 4, ' and ', (FLOOR(reputation / 4) + 1) * 4) " +
             "   END AS score_range, " +
             "   COUNT(*) AS user_count " +
             "FROM users " +
